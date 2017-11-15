@@ -1,5 +1,12 @@
 (* [state] is an abstract type representing the state of a chess game. *)
-type state
+type state =
+  {
+    board: (int*int);
+    missing: (int*int) list;
+    pieces: (piece, (int*int)) list;
+    playerAdead: piece list;
+    playerBdead: piece list
+  }
 
 (* [do' c st] is [st'] if doing command [c] in state [st] results
  * in a new state [st'].  The function name [do'] is used because
@@ -51,13 +58,7 @@ val do' : Command.command -> state -> state
 val init_state : Yojson.Basic.json -> state
 
 (* [can_shortcastle s] is true if player can shortcastle *)
-val can_shortcastle : state -> bool
-
 (* [can_longcastle s] is true if player can longcastle *)
-val can_longcastle : state -> bool
-
-(*TODO may merge can_longcastle and can_shortcastle to val_move*)
-
 (* [val_mov s st] is true if [s] is a valid player move
  * requires: [s] is a tuple of positions, the first being the piece to move and
  *  the second being the position to move to *)
