@@ -1,11 +1,26 @@
-(* [state] is an abstract type representing the state of a chess game. *)
+(* [state] is a record describing a chess game. The board is an customizable
+ *  12x12 grid where the 8x8 layout of classic chess is centered on the board.
+ *  [missing] is a list of int 2-tuples where each tuple gives the
+ *    location of an unplayable board position.
+ *  [pieces] is a list of 2-tuples of pieces and their locations.
+ *  [captured] is a list of pieces that have been captured.
+ *  [color] is a variant that tells whose turn it currently is
+ *  [turn] is the number of turns the game has been going on for, increments
+ *    every white turn
+ *  [score] is a 2-tuple of ints where the left is the score of white and the
+ *    right is the score of black.
+ *  [check] is an option of the player in check
+ *  [checkmate] is an option of the player in checkmate; ends game *)
 type state =
   {
-    board: (int*int);
     missing: (int*int) list;
-    pieces: (piece, (int*int)) list;
-    playerAdead: piece list;
-    playerBdead: piece list
+    pieces: (Models.piece * (int*int)) list;
+    captured: Models.piece list;
+    color: Modles.color;
+    turn: int;
+    score: (int*int);
+    check: Models.color option;
+    checkmate: Models.color option
   }
 
 (* [do' c st] is [st'] if doing command [c] in state [st] results
@@ -36,7 +51,7 @@ type state =
  *         the king is not in check, and the king does not cross over
  *         or end on a square in which it would be in check.
  *       + The action of "promotion" is valid if the piece specified is a pawn
- *         that reaches its eighth rank by moving can be edited due to customizability (*TODO*)
+ *         that reaches its eighth rank by moving (*TODO*)
  *   - The "captured" and "quit" commands are always possible and leave
  *     the observable state unchanged.
  *   - The behavior of [do'] is unspecified if the command is
@@ -52,29 +67,12 @@ type state =
 *)
 val do' : Command.command -> state -> state
 
-(* [init_state j] is the initial state of the game as
- * determined by JSON object [j].
- * requires: [j] represents an error-free adventure file. *)
-val init_state : Yojson.Basic.json -> state
+(* [init_state t] is the initial state of the game as
+ * determined by an unspecified type.
+ * requires: [t] give valid initial positions for pieces and a valid board *)
+val init_state : ((int*int) list) -> ((Models.piece * (int*int)) list) -> state
 
-(* [can_shortcastle s] is true if player can shortcastle *)
-(* [can_longcastle s] is true if player can longcastle *)
-(* [val_mov s st] is true if [s] is a valid player move
- * requires: [s] is a tuple of positions, the first being the piece to move and
- *  the second being the position to move to *)
-val val_move : ((int*int)*(int*int)) -> state -> bool
-
-(* [can_promote s] is true ig player can promote *)
-val can_promote : state -> bool
-
-(* [in_check s] is true if player is in check *)
-val in_check : state -> bool
-
-(* [in_checkmate s] is true if player is in checkmate *)
-val in_checkmate : state -> bool
-
-(* [score s] is the player's current score. *)
-val score : state -> int
-
-(* [turns s] is the number of turns the player has taken so far. *)
-val turns : state -> int
+(* [val_mov pos st] is true if [pos] is a valid player move
+ * requires: [pos] is a valid board position containing the current player's
+ *  piece*)
+val val_move_lst : (int*int) -> state -> (int*int) list
