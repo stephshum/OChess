@@ -8,12 +8,11 @@ type position = int * int
 type move =
   | Jump of position * position
   | Up
-  | Left
   | Right
   | DiagR
   | DiagL
-  | Pawn of int
-  | DiagPawn
+  | Pawn
+  | King
 
 (* [color] represents the color of the piece, whether it is black or white. *)
 type color =
