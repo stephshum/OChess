@@ -6,7 +6,7 @@ type position = int * int
 (* [move] represents possible movements that a piece can make in its overall
  * movement pattern. *)
 type move =
-  | Jump of position * position
+  | Jump of position
   | Up
   | Right
   | DiagR
