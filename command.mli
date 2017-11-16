@@ -1,11 +1,13 @@
+open Models
+
 (* [command] represents a command input given by a change in the GUI made
  * by a player. *)
 type command =
-  | Move of Models.position * Models.position
-  | Take of Models.position * Models.position
+  | Move of position * position
+  | Take of position * position
   | ShortCastle
   | LongCastle
-  | Promotion of Models.position * Models.piece
+  | Promotion of position * piece
   | Captured
   | Quit
   | Invalid
