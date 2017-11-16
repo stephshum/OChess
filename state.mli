@@ -29,8 +29,8 @@ type state =
  * be all the information that is observable about the state
  * from the functions above that take a [state] as input.
  *   - The "move", "take", "shortcastle", "longcastle", and "promotion" commands
- *     result in an appropriately updated [st'], if the action is
- *     valid in state [st].  If the action is invalid in
+ *     result in an appropriately updated [st'], as described in M1: Design,
+ *     if the action is valid in state [st].  If the action is invalid in
  *     state [st], the observable state remains unchanged in [st'].
  *       + The action of "move" is valid if the piece to be moved is
  *         capable of moving to the square it is to be moved to
