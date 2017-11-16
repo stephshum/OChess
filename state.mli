@@ -16,7 +16,7 @@ type state =
     missing: (int*int) list;
     pieces: (Models.piece * (int*int)) list;
     captured: Models.piece list;
-    color: Modles.color;
+    color: Models.color;
     turn: int;
     score: (int*int);
     check: Models.color option;
@@ -29,9 +29,8 @@ type state =
  * be all the information that is observable about the state
  * from the functions above that take a [state] as input.
  *   - The "move", "take", "shortcastle", "longcastle", and "promotion" commands
- *     result in an appropriately updated [st'], as described below
- *     (*TODO: need to know that things are included in the state*),
- *     if the action is valid in state [st].  If the action is invalid in
+ *     result in an appropriately updated [st'], if the action is
+ *     valid in state [st].  If the action is invalid in
  *     state [st], the observable state remains unchanged in [st'].
  *       + The action of "move" is valid if the piece to be moved is
  *         capable of moving to the square it is to be moved to
@@ -51,7 +50,8 @@ type state =
  *         the king is not in check, and the king does not cross over
  *         or end on a square in which it would be in check.
  *       + The action of "promotion" is valid if the piece specified is a pawn
- *         that reaches its eighth rank by moving (*TODO*)
+ *         that reaches its eighth rank by moving, and if the piece to be
+ *         promoted to is neither a king nor a pawn.
  *   - The "captured" and "quit" commands are always possible and leave
  *     the observable state unchanged.
  *   - The behavior of [do'] is unspecified if the command is
