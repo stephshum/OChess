@@ -1,3 +1,5 @@
+open Command
+open Models
 (* [state] is a record describing a chess game. The board is an customizable
  *  12x12 grid where the 8x8 layout of classic chess is centered on the board.
  *  [missing] is a list of int 2-tuples where each tuple gives the
@@ -13,8 +15,8 @@
  *  [checkmate] is an option of the player in checkmate; ends game *)
 type state =
   {
-    missing: (int*int) list;
-    pieces: (Models.piece * (int*int)) list;
+    missing: Models.position list;
+    pieces: (Models.piece * (Models.position)) list;
     captured: Models.piece list;
     color: Models.color;
     turn: int;
@@ -70,9 +72,9 @@ val do' : Command.command -> state -> state
 (* [init_state t] is the initial state of the game as
  * determined by an unspecified type.
  * requires: [t] give valid initial positions for pieces and a valid board *)
-val init_state : ((int*int) list) -> ((Models.piece * (int*int)) list) -> state
+val init_state : ((int*int) list) -> ((Models.piece * (Models.position)) list) -> state
 
 (* [val_mov pos st] is true if [pos] is a valid player move
  * requires: [pos] is a valid board position containing the current player's
  *  piece*)
-val val_move_lst : (int*int) -> state -> (int*int) list
+val val_move_lst : Models.position -> state -> Models.position list
