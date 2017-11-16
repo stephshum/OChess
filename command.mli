@@ -12,12 +12,6 @@ type command =
   | Quit
   | Invalid
 
-
-
-
-
-
-(* [parse str] is the command that represents player input [str].
- * requires: [str] is one of the commands forms described in the
- *   assignment writeup. *)
+(* [parse str] is the command that represents changes made by the player
+ * to the board. *)
 val parse : string -> command
