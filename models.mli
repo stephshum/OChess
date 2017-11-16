@@ -51,3 +51,6 @@ type powerup = {
 (* [void] represents the type of a void in the board where pieces are not
  * allowed to move. *)
 type void = position list
+
+(* [move_pattern p] is the list of possible movement patterns [piece] can make *)
+val move_pattern: piece -> move list
