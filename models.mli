@@ -12,6 +12,8 @@ type move =
   | Right
   | DiagR
   | DiagL
+  | Pawn of int
+  | DiagPawn
 
 (* [color] represents the color of the piece, whether it is black or white. *)
 type color =
