@@ -15,14 +15,14 @@ open Models
  *  [checkmate] is an option of the player in checkmate; ends game *)
 type state =
   {
-    missing: Models.position list;
-    pieces: (Models.piece * (Models.position)) list;
-    captured: Models.piece list;
-    color: Models.color;
+    missing: position list;
+    pieces: (piece * (position)) list;
+    captured: piece list;
+    color: color;
     turn: int;
     score: (int*int);
-    check: Models.color option;
-    checkmate: Models.color option
+    check: color option;
+    checkmate: color option
   }
 
 (* [do' c st] is [st'] if doing command [c] in state [st] results
@@ -67,14 +67,14 @@ type state =
  * Citations: https://en.wikipedia.org/wiki/Castling
  *            https://en.wikipedia.org/wiki/Promotion_(chess)
 *)
-val do' : Command.command -> state -> state
+val do' : command -> state -> state
 
 (* [init_state t] is the initial state of the game as
  * determined by an unspecified type.
  * requires: [t] give valid initial positions for pieces and a valid board *)
-val init_state : ((int*int) list) -> ((Models.piece * (Models.position)) list) -> state
+val init_state : ((int*int) list) -> ((piece * (position)) list) -> state
 
 (* [val_mov pos st] is true if [pos] is a valid player move
  * requires: [pos] is a valid board position containing the current player's
  *  piece*)
-val val_move_lst : Models.position -> state -> Models.position list
+val val_move_lst : position -> state -> position list
