@@ -7,6 +7,7 @@ open Models
  *  [pieces] is a list of 2-tuples of pieces and their locations.
  *  [captured] is a list of pieces that have been captured.
  *  [color] is a variant that tells whose turn it currently is
+ *  [promote] is true if current player can promote
  *  [turn] is the number of turns the game has been going on for, increments
  *    every white turn
  *  [score] is a 2-tuple of ints where the left is the score of white and the
@@ -19,6 +20,7 @@ type state =
     pieces: (piece * (position)) list;
     captured: piece list;
     color: color;
+    promote: bool;
     turn: int;
     score: (int*int);
     check: color option;
