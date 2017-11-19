@@ -6,8 +6,8 @@ type move =
   | Right
   | DiagR
   | DiagL
-  | PawnMov
-  | KingMov
+  | PawnMov of bool
+  | KingMov of bool
 
 type color =
   | Black

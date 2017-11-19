@@ -49,8 +49,8 @@ let init_state j =
     else if s = "Right" then Right
     else if s = "DiagR" then DiagR
     else if s = "DiagL" then DiagL
-    else if s = "Pawn" then PawnMov
-    else if s = "King" then KingMov
+    else if s = "Pawn" then PawnMov true
+    else if s = "King" then KingMov true
     else Jump (j |> int_tuple_of_json)
   in
   let piece_of_json j = {
@@ -170,8 +170,8 @@ let val_move_lst (x,y) st =
       | Right -> movs_of_vec (x,y) (1,0) false acc
       | DiagR -> movs_of_vec (x,y) (1,1) false acc
       | DiagL -> movs_of_vec (x,y) (-1,1) false acc
-      | PawnMov -> if pc.color = White then pawn_mov (-1) else pawn_mov 1
-      | KingMov -> king_move ()
+      | PawnMov b -> if pc.color = White then pawn_mov (-1) else pawn_mov 1
+      | KingMov b -> king_move ()
   ) [] pc.pattern
 
 let do' cmd st =

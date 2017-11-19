@@ -11,8 +11,8 @@ type move =
   | Right
   | DiagR
   | DiagL
-  | PawnMov
-  | KingMov
+  | PawnMov of bool
+  | KingMov of bool
 
 (* [color] represents the color of the piece, whether it is black or white. *)
 type color =
