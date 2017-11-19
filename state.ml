@@ -142,23 +142,44 @@ let val_move_lst (x,y) st =
     else
       acc
   in
-  let pawn_mov dir =
+  let pawn_mov dir two =
     if y+dir > 11 || y+dir < 0 then
-      let fr = check_fr dir in
-      let lf = check_diag (x-1,y+dir) fr in
-      check_diag (x+1,y+dir) lf
+      if two = false then
+        let fr = check_fr dir in
+        let lf = check_diag (x-1,y+dir) fr in
+        check_diag (x+1,y+dir) lf
+      else
+        let fr2 = check_fr (dir*2) in
+        let fr = check_fr dir in
+        let lf = check_diag (x-1,y+dir) (fr@fr2) in
+        check_diag (x+1,y+dir) lf
     else failwith "Impossible"
   in
-  let king_move _ =
-    let a = check_pos (x-1,y) [] in
-    let b = check_pos (x-1,y+1) a in
-    let c = check_pos (x-1,y-1) b in
-    let d = check_pos (x,y+1) c in
-    let e = check_pos (x,y-1) d in
-    let f = check_pos (x+1,y-1) e in
-    let g = check_pos (x+1,y+1) f in
-    let h = check_pos (x+1,y) g in
+  let rec enemy_mov _ =
     failwith "Unimplemented"
+  in
+  let king_val_mov (x',y') invallst acc =
+    let pos = check_pos (x',y') acc in
+    if pos = acc || List.mem (x',y') invallst then
+      acc
+    else
+      pos
+  in
+  let king_move castle =
+    let inv_king_mov = enemy_mov () in
+    let basic_mov = ([] |> king_val_mov (x-1,y) inv_king_mov |>
+                    king_val_mov (x-1,y+1) inv_king_mov |>
+                    king_val_mov (x-1,y-1) inv_king_mov |>
+                    king_val_mov (x,y+1) inv_king_mov |>
+                    king_val_mov (x,y-1) inv_king_mov |>
+                    king_val_mov (x+1,y-1) inv_king_mov |>
+                    king_val_mov (x+1,y+1) inv_king_mov |>
+                    king_val_mov (x+1,y) inv_king_mov)
+    in
+    if castle = false then
+      basic_mov
+    else
+      failwith "Unimplemented"
   in
   List.fold_left (
     fun acc mv ->
@@ -170,8 +191,8 @@ let val_move_lst (x,y) st =
       | Right -> movs_of_vec (x,y) (1,0) false acc
       | DiagR -> movs_of_vec (x,y) (1,1) false acc
       | DiagL -> movs_of_vec (x,y) (-1,1) false acc
-      | PawnMov b -> if pc.color = White then pawn_mov (-1) else pawn_mov 1
-      | KingMov b -> king_move ()
+      | PawnMov b -> if pc.color = White then pawn_mov (-1) b else pawn_mov 1 b
+      | KingMov b -> king_move b
   ) [] pc.pattern
 
 let do' cmd st =
