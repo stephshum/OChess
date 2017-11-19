@@ -17,7 +17,7 @@ open Models
 type state =
   {
     missing: position list;
-    pieces: (piece * (position)) list;
+    pieces: (position*(piece)) list;
     captured: piece list;
     color: color;
     promote: bool;
@@ -74,9 +74,8 @@ val do' : command -> state -> state
 (* [init_state t] is the initial state of the game as
  * determined by an unspecified type.
  * requires: [t] give valid initial positions for pieces and a valid board *)
-val init_state : ((int*int) list) -> ((piece * (position)) list) -> state
+val init_state : Yojson.Basic.json -> state
 
 (* [val_mov pos st] is true if [pos] is a valid player move
- * requires: [pos] is a valid board position containing the current player's
- *  piece*)
+ * requires: [pos] is a valid board position containing a player's piece *)
 val val_move_lst : position -> state -> position list

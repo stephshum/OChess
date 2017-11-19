@@ -11,8 +11,8 @@ type move =
   | Right
   | DiagR
   | DiagL
-  | Pawn
-  | King
+  | PawnMov
+  | KingMov
 
 (* [color] represents the color of the piece, whether it is black or white. *)
 type color =
@@ -22,20 +22,19 @@ type color =
 (* [name] represents either the name of a piece in the classic chess game or
  * a custom piece created by a player. *)
 type name =
-  | Pawn of piece
-  | Rook of piece
-  | Knight of piece
-  | Bishop of piece
-  | Queen of piece
-  | King of piece
-  | Custom of piece
+  | Pawn
+  | Rook
+  | Knight
+  | Bishop
+  | Queen
+  | King
+  | Custom of string
 
 (* [piece] represents a playable chess piece and contains information on the  *)
-and piece = {
+type piece = {
   name: name;
   color: color;
   pattern: move list;
-  mutable initial: position;
 }
 
 (* [powerup] represents the type of a powerup that pieces can gain if their
@@ -46,10 +45,3 @@ type powerup = {
   place: position list;
   persists: bool;
 }
-
-(* [void] represents the type of a void in the board where pieces are not
- * allowed to move. *)
-type void = position list
-
-(* [move_pattern p] is the list of possible movement patterns [piece] can make *)
-val move_pattern: piece -> move list

@@ -4,9 +4,6 @@ open Models
  * by a player. *)
 type command =
   | Move of position * position
-  | Take of position * position
-  | ShortCastle
-  | LongCastle
   | Promotion of position * piece
   | Captured
   | Quit
