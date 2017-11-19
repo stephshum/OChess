@@ -1,0 +1,18 @@
+{
+  "missing": ["(0,0)","(0,1)"],
+  "pieces": [{
+      "piece": {
+        "name": "Rook",
+        "color": "Black",
+        "pattern": [ "Up", "Right" ]
+      },
+      "position": "(2,2)"
+  }],
+  "captured": [],
+  "color": "White",
+  "promote": false,
+  "turn": 1,
+  "score": "(0,0)",
+  "check": "None",
+  "checkmate": "None"
+}

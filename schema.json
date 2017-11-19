@@ -1,0 +1,54 @@
+{
+  "type": "object",
+  "properties": {
+    "missing": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "pieces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "piece": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "color": { "type": "string" },
+              "pattern": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "required": [ "name", "color", "pattern" ]
+          },
+          "position": { "type": "string" }
+        },
+        "required": [ "piece", "position" ]
+      }
+    },
+    "captured": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "color": { "type": "string" },
+          "pattern": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": [ "name", "color", "pattern" ]
+      }
+    },
+    "color": { "type": "string" },
+    "promote": { "type": "boolean" },
+    "turn": { "type": "integer" },
+    "score": { "type": "string" },
+    "check": { "type": "string" },
+    "checkmate": { "type": "string" }
+  },
+  "required": ["missing","pieces","captured","color",
+    "promote","turn","score","check","checkmate"]
+}
