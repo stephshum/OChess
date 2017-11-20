@@ -3,4 +3,3 @@ test:
 
 clean:
 	ocamlbuild -clean
-	rm -f a4src.zip
