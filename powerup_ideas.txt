@@ -1,0 +1,36 @@
+powerup ideas
+
+raise the dead
+bring back three pawns in front of you if valid spaces, if they are empty and not in the last row
+
+elimination
+eliminations a whole column of pieces
+
+no jumpers
+takes all of the jumpers off of the board
+
+second chance
+once this piece dies, the opponent has to revive it but is allowed to choose where to put it
+easier version is pick any piece to revive
+
+clone
+make a copy of a piece on the board
+
+mind control
+steal a piece from the other guy
+
+kings cannot get power ups
+
+cult murder
+kill every near by in the circle
+
+/////////////////////////////Will not implement///////////////////////////////////
+//capture the flag
+powerup is randomly bestowed onto a piece--> if the other team eats this piece, its like capturing a king
+//confusion
+make all of the pieces within one block unable to move for two turns
+/////////////////////////////Will not implement///////////////////////////////////
+
+TODO:
+write up
+rate later
