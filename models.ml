@@ -15,7 +15,7 @@ type color =
 
 type name =
   | Pawn
-  | Rook
+  | Rook of bool
   | Knight
   | Bishop
   | Queen
@@ -24,12 +24,21 @@ type name =
 
 type piece = {
   name: name;
-  color: color;
+  pcolor: color;
   pattern: move list;
 }
 
+type power =
+  | RaisetheDead
+  | Elimination
+  | NoJumpers
+  | SecondChance
+  | Clone
+  | MindControl
+  | CultMurder
+
 type powerup = {
-  name: string;
+  pow_name: power;
   place: position list;
   persists: bool;
 }

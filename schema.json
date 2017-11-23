@@ -46,9 +46,11 @@
     "promote": { "type": "boolean" },
     "turn": { "type": "integer" },
     "score": { "type": "string" },
+    "wking": {"type": "string"},
+    "bking": {"type": "string"},
     "check": { "type": "string" },
     "checkmate": { "type": "string" }
   },
   "required": ["missing","pieces","captured","color",
-    "promote","turn","score","check","checkmate"]
+    "promote","turn","score","wking","bking","check","checkmate"]
 }

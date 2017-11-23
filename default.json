@@ -13,6 +13,8 @@
   "promote": false,
   "turn": 1,
   "score": "(0,0)",
+  "wking": "(6,2)",
+  "bking": "(6,9)",
   "check": "None",
   "checkmate": "None"
 }

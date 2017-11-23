@@ -23,7 +23,7 @@ type color =
  * a custom piece created by a player. *)
 type name =
   | Pawn
-  | Rook
+  | Rook of bool
   | Knight
   | Bishop
   | Queen
@@ -33,7 +33,7 @@ type name =
 (* [piece] represents a playable chess piece and contains information on the  *)
 type piece = {
   name: name;
-  color: color;
+  pcolor: color;
   pattern: move list;
 }
 
@@ -51,7 +51,7 @@ type power =
  * position is the same as the placement of the powerup on the board. The
  * powerup may stay on the board at the same position after or may not. *)
 type powerup = {
-  name: power;
+  pow_name: power;
   place: position list;
   persists: bool;
 }

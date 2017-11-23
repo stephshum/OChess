@@ -23,6 +23,8 @@ type state =
     promote: bool;
     turn: int;
     score: (int*int);
+    wking: (int*int);
+    bking: (int*int);
     check: color option;
     checkmate: color option
   }
@@ -76,6 +78,6 @@ val do' : command -> state -> state
  * requires: [t] give valid initial positions for pieces and a valid board *)
 val init_state : Yojson.Basic.json -> state
 
-(* [val_mov pos st] is true if [pos] is a valid player move
+(* [val_mov_lst pos st] is the list of valid movement for a piece at [pos]
  * requires: [pos] is a valid board position containing a player's piece *)
 val val_move_lst : position -> state -> position list
