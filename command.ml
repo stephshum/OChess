@@ -2,8 +2,7 @@ open Models
 
 type command =
   | Move of position * position
-  | Promotion of position * piece
-  | Captured
+  | Promotion of piece
   | Quit
   | Invalid
 

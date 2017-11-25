@@ -7,27 +7,32 @@ open Models
  *  [pieces] is a list of 2-tuples of pieces and their locations.
  *  [captured] is a list of pieces that have been captured.
  *  [color] is a variant that tells whose turn it currently is
- *  [promote] is true if current player can promote
+ *  [promote] is either some position of pawn to promote or none
+ *  [trow] is the top row of the board
+ *  [brow] is the bottom row of the board
  *  [turn] is the number of turns the game has been going on for, increments
  *    every white turn
  *  [score] is a 2-tuple of ints where the left is the score of white and the
  *    right is the score of black.
+ *  [wking] is the position of the white king
+ *  [bking] is the position of the black king
  *  [check] is an option of the player in check
  *  [checkmate] is an option of the player in checkmate; ends game *)
-type state =
-  {
-    missing: position list;
-    pieces: (position*(piece)) list;
-    captured: piece list;
-    color: color;
-    promote: bool;
-    turn: int;
-    score: (int*int);
-    wking: (int*int);
-    bking: (int*int);
-    check: color option;
-    checkmate: color option
-  }
+type state = {
+  missing: position list;
+  pieces: (position*(piece)) list;
+  captured: piece list;
+  color: color;
+  promote: position option;
+  trow: int;
+  brow: int;
+  turn: int;
+  score: (int*int); (* left is White score, right is Black score *)
+  wking: (int*int);
+  bking: (int*int);
+  check: color option;
+  checkmate: color option
+}
 
 (* [do' c st] is [st'] if doing command [c] in state [st] results
  * in a new state [st'].  The function name [do'] is used because

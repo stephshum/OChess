@@ -43,7 +43,9 @@
       }
     },
     "color": { "type": "string" },
-    "promote": { "type": "boolean" },
+    "trow": {"type": "integer"},
+    "brow": {"type": "integer"},
+    "promote": { "type": "string" },
     "turn": { "type": "integer" },
     "score": { "type": "string" },
     "wking": {"type": "string"},
