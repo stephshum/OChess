@@ -299,12 +299,36 @@ let do' cmd st =
     | ((w,b),Black) -> (w,(get_score cap.name)+b)
     | ((w,b),White) -> ((get_score cap.name)+w,b)
   in
-  let color_in_check clr pcs =
-    let kloc = if clr = Black then st.bking else st.wking in
-    if in_check st.missing pcs clr kloc then Some clr else None
+  let color_in_check clr check =
+    if check then Some clr else None
   in
-  let color_in_checkmate clr pcs =
-    failwith "Unimplemented"
+  let mate_of_pc moves =
+    match moves with
+    | [] -> true
+    | h::t -> false
+  in
+  let color_in_checkmate truth st =
+    if (truth && List.fold_left (fun acc (pos,pc) ->
+        if pc.pcolor = st.color then
+          acc && mate_of_pc (val_move_lst pos st)
+        else acc) true st.pieces) then
+      {
+        missing = st.missing;
+        pieces = st.pieces;
+        captured = st.captured;
+        color = st.color;
+        promote = st.promote;
+        trow = st.trow;
+        brow = st.brow;
+        turn = st.turn;
+        score = st.score;
+        wking = st.wking;
+        bking = st.bking;
+        check = st.check;
+        checkmate = Some st.color
+      }
+    else
+     st
   in
   let mv (xi,yi) (xf,yf) =
     let pc = List.assoc (xi,yi) st.pieces in
@@ -315,104 +339,120 @@ let do' cmd st =
         let pc_lst = ((xf,yf),pc)::(st.pieces |>
           List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf)) in
         let cap_lst = cap::st.captured in
+        let kloc = if ncolor = Black then st.bking else st.wking in
+        let truth  = in_check st.missing pc_lst ncolor kloc in
         if pc.name = King && st.color = Black then
-          {
-            missing = st.missing;
-            pieces = pc_lst;
-            captured = cap_lst;
-            color = ncolor;
-            promote = None;
-            trow = st.trow;
-            brow = st.brow;
-            turn = st.turn + 1;
-            score = update_score cap st.score;
-            wking = st.wking;
-            bking = (xf,yf);
-            check = color_in_check ncolor pc_lst;
-            checkmate = color_in_checkmate ncolor pc_lst
-          }
+          let st' = {
+              missing = st.missing;
+              pieces = pc_lst;
+              captured = cap_lst;
+              color = ncolor;
+              promote = None;
+              trow = st.trow;
+              brow = st.brow;
+              turn = st.turn + 1;
+              score = update_score cap st.score;
+              wking = st.wking;
+              bking = (xf,yf);
+              check = color_in_check ncolor truth;
+              checkmate = None
+            }
+          in
+          color_in_checkmate truth st'
         else if pc.name = King && st.color = White then
-          {
-            missing = st.missing;
-            pieces = pc_lst;
-            captured = cap_lst;
-            color = ncolor;
-            promote = None;
-            trow = st.trow;
-            brow = st.brow;
-            turn = st.turn + 1;
-            score = update_score cap st.score;
-            wking = (xf,yf);
-            bking = st.bking;
-            check = color_in_check ncolor pc_lst;
-            checkmate = color_in_checkmate ncolor pc_lst
-          }
+          let st' = {
+              missing = st.missing;
+              pieces = pc_lst;
+              captured = cap_lst;
+              color = ncolor;
+              promote = None;
+              trow = st.trow;
+              brow = st.brow;
+              turn = st.turn + 1;
+              score = update_score cap st.score;
+              wking = (xf,yf);
+              bking = st.bking;
+              check = color_in_check ncolor truth;
+              checkmate = None
+            }
+          in
+          color_in_checkmate truth st'
         else
-          {
-            missing = st.missing;
-            pieces = pc_lst;
-            captured = cap_lst;
-            color = ncolor;
-            promote = None;
-            trow = st.trow;
-            brow = st.brow;
-            turn = st.turn + 1;
-            score = update_score cap st.score;
-            wking = st.wking;
-            bking = st.bking;
-            check = color_in_check ncolor pc_lst;
-            checkmate = color_in_checkmate ncolor pc_lst
-          }
+          let st' = {
+              missing = st.missing;
+              pieces = pc_lst;
+              captured = cap_lst;
+              color = ncolor;
+              promote = None;
+              trow = st.trow;
+              brow = st.brow;
+              turn = st.turn + 1;
+              score = update_score cap st.score;
+              wking = st.wking;
+              bking = st.bking;
+              check = color_in_check ncolor truth;
+              checkmate = None
+            }
+          in
+          color_in_checkmate truth st'
       else
         let pc_lst = ((xf,yf),pc)::(st.pieces|>List.remove_assoc (xi,yi)) in
+        let kloc = if ncolor = Black then st.bking else st.wking in
+        let truth  = in_check st.missing pc_lst ncolor kloc in
         if pc.name = King && st.color = Black then
-          {
-            missing = st.missing;
-            pieces = pc_lst;
-            captured = st.captured;
-            color = ncolor;
-            promote = None;
-            trow = st.trow;
-            brow = st.brow;
-            turn = st.turn + 1;
-            score = st.score;
-            wking = st.wking;
-            bking = (xf,yf);
-            check = color_in_check ncolor st.pieces;
-            checkmate = color_in_checkmate ncolor st.pieces
-          }
+          let st' = {
+              missing = st.missing;
+              pieces = pc_lst;
+              captured = st.captured;
+              color = ncolor;
+              promote = None;
+              trow = st.trow;
+              brow = st.brow;
+              turn = st.turn + 1;
+              score = st.score;
+              wking = st.wking;
+              bking = (xf,yf);
+              check = color_in_check ncolor truth;
+              checkmate = None
+            }
+          in
+          color_in_checkmate truth st'
         else if pc.name = King && st.color = White then
-          {
-            missing = st.missing;
-            pieces = pc_lst;
-            captured = st.captured;
-            color = ncolor;
-            promote = None;
-            trow = st.trow;
-            brow = st.brow;
-            turn = st.turn + 1;
-            score = st.score;
-            wking = (xf,yf);
-            bking = st.bking;
-            check = color_in_check ncolor st.pieces;
-            checkmate = color_in_checkmate ncolor st.pieces
-          }
+          let st' = {
+              missing = st.missing;
+              pieces = pc_lst;
+              captured = st.captured;
+              color = ncolor;
+              promote = None;
+              trow = st.trow;
+              brow = st.brow;
+              turn = st.turn + 1;
+              score = st.score;
+              wking = (xf,yf);
+              bking = st.bking;
+              check = color_in_check ncolor truth;
+              checkmate = None
+            }
+          in
+          color_in_checkmate truth st'
         else
-          {
-            missing = st.missing;
-            pieces = pc_lst;
-            captured = st.captured;
-            color = ncolor;
-            promote = None;
-            trow = st.trow;
-            brow = st.brow;
-            turn = st.turn + 1;
-            score = st.score;
-            wking = st.wking;
-            bking = st.bking;
-            check = color_in_check ncolor pc_lst;
-            checkmate = color_in_checkmate ncolor pc_lst
-          }
+          let st' = {
+              missing = st.missing;
+              pieces = pc_lst;
+              captured = st.captured;
+              color = ncolor;
+              promote = None;
+              trow = st.trow;
+              brow = st.brow;
+              turn = st.turn + 1;
+              score = st.score;
+              wking = st.wking;
+              bking = st.bking;
+              check = color_in_check ncolor truth;
+              checkmate = None
+            }
+          in
+          color_in_checkmate truth st'
     else if ((yf = st.trow && st.color = White)
              || (yf = st.brow && st.color = Black)) then
       if List.mem_assoc (xf,yf) st.pieces then
@@ -420,96 +460,116 @@ let do' cmd st =
         let pc_lst = ((xf,yf),pc)::(st.pieces |>
                                     List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf)) in
         let cap_lst = cap::st.captured in
-        {
-          missing = st.missing;
-          pieces = pc_lst;
-          captured = cap_lst;
-          color = st.color;
-          promote = Some (xf,yf);
-          trow = st.trow;
-          brow = st.brow;
-          turn = st.turn + 1;
-          score = update_score cap st.score;
-          wking = st.wking;
-          bking = st.bking;
-          check = color_in_check ncolor pc_lst;
-          checkmate = color_in_checkmate ncolor pc_lst
-        }
+        let kloc = if ncolor = Black then st.bking else st.wking in
+        let truth  = in_check st.missing pc_lst ncolor kloc in
+        let st' = {
+            missing = st.missing;
+            pieces = pc_lst;
+            captured = cap_lst;
+            color = st.color;
+            promote = Some (xf,yf);
+            trow = st.trow;
+            brow = st.brow;
+            turn = st.turn + 1;
+            score = update_score cap st.score;
+            wking = st.wking;
+            bking = st.bking;
+            check = color_in_check ncolor truth;
+            checkmate = None
+          }
+        in
+        color_in_checkmate truth st'
       else
         let pc_lst = ((xf,yf),pc)::(st.pieces|>List.remove_assoc (xi,yi)) in
-        {
-          missing = st.missing;
-          pieces = pc_lst;
-          captured = st.captured;
-          color = st.color;
-          promote = Some (xf,yf);
-          trow = st.trow;
-          brow = st.brow;
-          turn = st.turn + 1;
-          score = st.score;
-          wking = st.wking;
-          bking = st.bking;
-          check = color_in_check ncolor pc_lst;
-          checkmate = color_in_checkmate ncolor pc_lst
-        }
+        let kloc = if ncolor = Black then st.bking else st.wking in
+        let truth  = in_check st.missing pc_lst ncolor kloc in
+        let st' = {
+            missing = st.missing;
+            pieces = pc_lst;
+            captured = st.captured;
+            color = st.color;
+            promote = Some (xf,yf);
+            trow = st.trow;
+            brow = st.brow;
+            turn = st.turn + 1;
+            score = st.score;
+            wking = st.wking;
+            bking = st.bking;
+            check = color_in_check ncolor truth;
+            checkmate = None
+          }
+        in
+        color_in_checkmate truth st'
     else
       if List.mem_assoc (xf,yf) st.pieces then
         let cap = List.assoc (xf,yf) st.pieces in
         let pc_lst = ((xf,yf),pc)::(st.pieces |>
                                     List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf)) in
         let cap_lst = cap::st.captured in
-        {
-          missing = st.missing;
-          pieces = pc_lst;
-          captured = cap_lst;
-          color = ncolor;
-          promote = None;
-          trow = st.trow;
-          brow = st.brow;
-          turn = st.turn + 1;
-          score = update_score cap st.score;
-          wking = st.wking;
-          bking = st.bking;
-          check = color_in_check ncolor pc_lst;
-          checkmate = color_in_checkmate ncolor pc_lst
-        }
+        let kloc = if ncolor = Black then st.bking else st.wking in
+        let truth  = in_check st.missing pc_lst ncolor kloc in
+        let st' = {
+            missing = st.missing;
+            pieces = pc_lst;
+            captured = cap_lst;
+            color = ncolor;
+            promote = None;
+            trow = st.trow;
+            brow = st.brow;
+            turn = st.turn + 1;
+            score = update_score cap st.score;
+            wking = st.wking;
+            bking = st.bking;
+            check = color_in_check ncolor truth;
+            checkmate = None
+          }
+        in
+        color_in_checkmate truth st'
       else
         let pc_lst = ((xf,yf),pc)::(st.pieces|>List.remove_assoc (xi,yi)) in
-        {
-          missing = st.missing;
-          pieces = pc_lst;
-          captured = st.captured;
-          color = ncolor;
-          promote = None;
-          trow = st.trow;
-          brow = st.brow;
-          turn = st.turn + 1;
-          score = st.score;
-          wking = st.wking;
-          bking = st.bking;
-          check = color_in_check ncolor pc_lst;
-          checkmate = color_in_checkmate ncolor pc_lst
-        }
+        let kloc = if ncolor = Black then st.bking else st.wking in
+        let truth  = in_check st.missing pc_lst ncolor kloc in
+        let st' = {
+            missing = st.missing;
+            pieces = pc_lst;
+            captured = st.captured;
+            color = ncolor;
+            promote = None;
+            trow = st.trow;
+            brow = st.brow;
+            turn = st.turn + 1;
+            score = st.score;
+            wking = st.wking;
+            bking = st.bking;
+            check = color_in_check ncolor truth;
+            checkmate = None
+          }
+        in
+        color_in_checkmate truth st'
   in
   let promote pc =
     let pos = match st.promote with Some p->p |None -> failwith "Impossible" in
     let ncolor = if st.color = Black then White else Black in
     let pc_lst = (pos,pc)::(List.remove_assoc pos st.pieces) in
-    {
-      missing = st.missing;
-      pieces = pc_lst;
-      captured = st.captured;
-      color = ncolor;
-      promote = None;
-      trow = st.trow;
-      brow = st.brow;
-      turn = st.turn;
-      score = st.score;
-      wking = st.wking;
-      bking = st.bking;
-      check = color_in_check ncolor pc_lst;
-      checkmate = color_in_checkmate ncolor pc_lst
-    }
+    let kloc = if ncolor = Black then st.bking else st.wking in
+    let truth  = in_check st.missing pc_lst ncolor kloc in
+    let st' = {
+        missing = st.missing;
+        pieces = pc_lst;
+        captured = st.captured;
+        color = ncolor;
+        promote = None;
+        trow = st.trow;
+        brow = st.brow;
+        turn = st.turn;
+        score = st.score;
+        wking = st.wking;
+        bking = st.bking;
+        check = color_in_check ncolor truth;
+        checkmate = None
+      }
+    in
+    color_in_checkmate truth st'
   in
   match cmd with
   | Move (init,fin) -> mv init fin
