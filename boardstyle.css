@@ -13,14 +13,18 @@ body {
 }
 
 .chessboard {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-100%, -50%);
     border-collapse: separate;
     table-layout: fixed;
     border: 20px solid rgba(53, 92, 125, 1);
     table-layout: fixed;
     background-clip: border-box;
     background-color: #355C7D;
-    min-width: 650px;
-    min-height: 650px;
+    min-width: 700px;
+    min-height: 700px;
 }
 
 .square {
@@ -48,6 +52,7 @@ body {
     margin: 0;
     top: 10%;
     left: 53%;
+    padding: 10px;
 }
 
 }
