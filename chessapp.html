@@ -195,6 +195,51 @@
       </table>
     </div>
 
+    <style>
+    .customize-board {
+      width: 200px;
+      height: 200px;
+      background: #F8B195;
+      top: 6%;
+      left: 78%;
+    }
+
+    .create-pieces {
+      width: 200px;
+      height: 200px;
+      background: #F67280;
+      top: 0%;
+      left: 78%;
+      transform: translate(0%,30%);
+    }
+
+    .start-game {
+      width: 200px;
+      height: 200px;
+      background: #C06C84;
+      top: 0%;
+      left: 78%;
+      transform: translate(0%,38%);
+    }
+
+    .card-event > .mdl-card__actions {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .card-event > .mdl-card__actions {
+      display: flex;
+    }
+    .card-event > .mdl-card__actions > .material-icons {
+      padding-right: 5px;
+      padding-top: 5px
+    }
+    .card-event > .mdl-card__title,
+    .card-event > .mdl-card__actions,
+    .card-event > .mdl-card__actions > .mdl-button {
+      color: #ffffff;
+    }
+    </style>
+
     <div class="card-event mdl-card customize-board mdl-shadow--2dp">
       <div class="mdl-card__title mdl-card--expand">
         <h4>Customize your own board</h4>
@@ -223,7 +268,7 @@
 
     <div class="card-event mdl-card start-game mdl-shadow--2dp">
       <div class="mdl-card__title mdl-card--expand">
-        <h4>Start new game</h4>
+        <h4>Start a new game</h4>
       </div>
       <div class="mdl-card__actions mdl-card--border">
         <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
@@ -232,6 +277,31 @@
         <div class="mdl-layout-spacer"></div>
         <i class="material-icons">play_circle_filled</i>
       </div>
+    </div>
+
+    <div class="player-scores">
+      <table class="mdl-data-table mdl-js-data-table mdl-shadow--16dp"
+        style="border-radius: 5px">
+        <thead>
+          <tr>
+            <th class="mdl-data-table__cell--non-numeric">Player</th>
+            <th class="mdl-data-table__cell--non-numeric">Captured</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="player1" class="mdl-data-table__cell--non-numeric">White</td>
+            <td id="player1" class="mdl-data-table__cell--non-numeric">--</td>
+            <td id="score-0">--</td>
+          </tr>
+          <tr>
+            <td id="player2" class="mdl-data-table__cell--non-numeric">Black</td>
+            <td id="player2" class="mdl-data-table__cell--non-numeric">--</td>
+            <td id="score-1">--</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <script type="text/javascript">
