@@ -1,15 +1,26 @@
-
 body {
-    background: #990033;
+    background: #24425b;
+}
+
+.title {
+  font-family: "Karla";
+  font-size: 6em;
+  color: #ffffff;
+  position: absolute;
+  top: 15%;
+  right: -5%;
+  transform: rotate(90deg);
 }
 
 .chessboard {
-    border-collapse: collapse;
+    border-collapse: separate;
     table-layout: fixed;
-    background-clip: content-box;
-    background-color: #FAFAFA;
-    min-width: 570px;
-    min-height: 570px;
+    border: 20px solid rgba(53, 92, 125, 1);
+    table-layout: fixed;
+    background-clip: border-box;
+    background-color: #355C7D;
+    min-width: 650px;
+    min-height: 650px;
 }
 
 .square {
@@ -17,7 +28,7 @@ body {
 }
 
 .void {
-    background-color: #990033;
+    background-color: #646464;
 }
 
 .power-up {
@@ -25,11 +36,60 @@ body {
 }
 
 .black-tile {
-    background-color: #262626;
+    background-color: #edac93;
 }
 
 .white-tile {
-    background-color: #ffffff;
+    background-color: #ffe8dd;
+}
+
+.customize-board {
+  width: 200px;
+  height: 0px;
+  background: #F8B195;
+  top: 2%;
+  left: 51%;
+}
+
+.create-pieces {
+  width: 200px;
+  height: 0px;
+  background: #F67280;
+  top: 0%;
+  left: 51%;
+  transform: translate(0%,10%);
+}
+
+.start-game {
+  width: 200px;
+  height: 0px;
+  background: #C06C84;
+  top: 0%;
+  left: 51%;
+  transform: translate(0%,14%);
+}
+
+.card-event > .mdl-card__actions {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.card-event > .mdl-card__title {
+  align-items: flex-left;
+}
+.card-event > .mdl-card__title > h4 {
+  margin-top: 0;
+}
+.card-event > .mdl-card__actions {
+  display: flex;
+  box-sizing: border-box;
+  align-items: flex-left;
+}
+.card-event > .mdl-card__actions > .material-icons {
+  padding-right: 10px;
+}
+.card-event > .mdl-card__title,
+.card-event > .mdl-card__actions,
+.card-event > .mdl-card__actions > .mdl-button {
+  color: #fff;
 }
 
 }
