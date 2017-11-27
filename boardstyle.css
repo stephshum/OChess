@@ -19,10 +19,9 @@ body {
     transform: translate(-100%, -50%);
     border-collapse: separate;
     table-layout: fixed;
-    border: 20px solid rgba(53, 92, 125, 1);
     table-layout: fixed;
-    background-clip: border-box;
-    background-color: #355C7D;
+    background-clip: content-box;
+    background-color: #24425b;
     min-width: 700px;
     min-height: 700px;
 }
@@ -32,7 +31,7 @@ body {
 }
 
 .void {
-    background-color: #646464;
+    background-color: #355C7D;
 }
 
 .power-up {
