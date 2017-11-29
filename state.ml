@@ -290,9 +290,9 @@ let do' cmd st =
     | Pawn -> 1
     | Rook _ -> 5
     | Knight | Bishop -> 3
-    | Queen -> 8
+    | Queen -> 9
     | King -> failwith "Impossible"
-    | Custom _ -> 8
+    | Custom _ -> 7
   in
   let update_score cap score =
     match (score,cap.pcolor) with

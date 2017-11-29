@@ -8,10 +8,10 @@ General Requirements:
 
 
 ***Raise the Dead***
-Description: 
+Description:
 -“Bring back” three pawns in front of you if there exists three valid spaces that are one space in front, one space to the top left, and one space to the top right. Does NOT require three captured pawns.
 
-Requires: 
+Requires:
 -The power-up cannot be placed in the second to last or first to last row to the end.
 
 Implementation:
@@ -22,9 +22,9 @@ Implementation:
 
 
 ***Elimination***
-Description: 
+Description:
 -Eliminates a whole column of pieces.
-	
+
 Requires:
 -The power-up cannot be placed in the column that the kings start on 	originally.
 
@@ -37,9 +37,9 @@ Implementation:
 
 
 ***No Jumpers***
-Description: 
+Description:
 -Takes all of the jumpers off of the board.
-	
+
 Requires:
 -None
 
@@ -50,10 +50,10 @@ Implementation:
 
 
 ***Second Chance***
-Description: 
+Description:
 -Pick any piece to revive.
 
-Requires: 
+Requires:
 -None
 
 Implementation:
@@ -65,9 +65,9 @@ Implementation:
 
 
 ***Clone***
-Description: 
+Description:
 -Make a copy of a piece on the board.
-	
+
 Requires:
 -None
 
@@ -80,9 +80,9 @@ Implementation:
 
 
 ***Mind Control***
-Description: 
--Steal a piece from the other guy.
-	
+Description:
+-Steal a piece from the other player.
+
 Requires:
 -None
 
@@ -95,7 +95,7 @@ Implementation:
 
 
 ***Cult Murder***
-Description: 
+Description:
 -Kill every one in the ‘nearby circle’, which is defined to be 8-spaces next to the power-up.
 
 Requires:
