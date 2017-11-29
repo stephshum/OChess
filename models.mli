@@ -20,7 +20,8 @@ type color =
   | White
 
 (* [name] represents either the name of a piece in the classic chess game or
- * a custom piece created by a player. *)
+ * a custom piece created by a player. All custom piece names must be lowercase!
+ *)
 type name =
   | Pawn
   | Rook of bool

@@ -3,7 +3,7 @@ open Models
 (* [command] represents a command input given by a change in the GUI made
  * by a player. *)
 type command =
-  | Move of position * position
+  | Move of (position * position)
   | Promotion of name
   | Quit
   | Invalid
