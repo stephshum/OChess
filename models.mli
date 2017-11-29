@@ -30,11 +30,10 @@ type name =
   | King
   | Custom of string
 
-(* [piece] represents a playable chess piece and contains information on the  *)
+(* [piece] represents a chess piece and its color *)
 type piece = {
   name: name;
   pcolor: color;
-  pattern: move list;
 }
 
 (* [power] represent the name of a powerup *)

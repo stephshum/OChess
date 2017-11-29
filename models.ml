@@ -23,10 +23,9 @@ type name =
   | Custom of string
 
 type piece = {
-  name: name;
-  pcolor: color;
-  pattern: move list;
-}
+   name: name;
+   pcolor: color;
+ }
 
 type power =
   | RaisetheDead

@@ -4,9 +4,10 @@ open Models
  * by a player. *)
 type command =
   | Move of position * position
-  | Promotion of piece
+  | Promotion of name
   | Quit
   | Invalid
+  | PreMove of position
 
 (* [parse str] is the command that represents changes made by the player
  * to the board. *)

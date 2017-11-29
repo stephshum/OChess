@@ -10,17 +10,27 @@
       "items": {
         "type": "object",
         "properties": {
+          "name": { "type": "string" },
+          "pattern": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": [ "name", "pattern" ]
+      }
+    },
+    "pc_loc": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
           "piece": {
             "type": "object",
             "properties": {
               "name": { "type": "string" },
-              "color": { "type": "string" },
-              "pattern": {
-                "type": "array",
-                "items": { "type": "string" }
-              }
+              "color": { "type": "string" }
             },
-            "required": [ "name", "color", "pattern" ]
+            "required": [ "name", "color" ]
           },
           "position": { "type": "string" }
         },
@@ -33,13 +43,9 @@
         "type": "object",
         "properties": {
           "name": { "type": "string" },
-          "color": { "type": "string" },
-          "pattern": {
-            "type": "array",
-            "items": { "type": "string" }
-          }
+          "color": { "type": "string" }
         },
-        "required": [ "name", "color", "pattern" ]
+        "required": [ "name", "color" ]
       }
     },
     "color": { "type": "string" },
@@ -53,6 +59,6 @@
     "check": { "type": "string" },
     "checkmate": { "type": "string" }
   },
-  "required": ["missing","pieces","captured","color",
+  "required": ["missing","pieces","pc_loc","captured","color",
     "promote","turn","score","wking","bking","check","checkmate"]
 }

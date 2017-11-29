@@ -4,8 +4,10 @@ open Models
  *  12x12 grid where the 8x8 layout of classic chess is centered on the board.
  *  [missing] is a list of int 2-tuples where each tuple gives the
  *    location of an unplayable board position.
- *  [pieces] is a list of 2-tuples of pieces and their locations.
- *  [captured] is a list of pieces that have been captured.
+ *  [pieces] is a list of all possible types of pieces in the game and their
+ *    move patterns.
+ *  [pc_loc] is a list of 2-tuples of pieces and their locations.
+ *  [captured] is a list of pc_loc that have been captured.
  *  [color] is a variant that tells whose turn it currently is
  *  [promote] is either some position of pawn to promote or none
  *  [trow] is the top row of the board
@@ -20,7 +22,8 @@ open Models
  *  [checkmate] is an option of the player in checkmate; ends game *)
 type state = {
   missing: position list;
-  pieces: (position*(piece)) list;
+  pieces: (name*(move list)) list;
+  pc_loc: (position*(piece)) list;
   captured: piece list;
   color: color;
   promote: position option;
