@@ -2,15 +2,52 @@ open State
 open Command
 open Models
 
+let str_of_color = function
+  | Black -> "Black"
+  | White -> "White"
+
+let str_of_pc = function
+  | Rook _ -> "Rook"
+  | Knight -> "Knight"
+  | Bishop -> "Bishop"
+  | Queen -> "Queen"
+  | King _ -> "King"
+  | Pawn _ -> "Pawn"
+  | Custom s -> s
+
+let rec str_of_pc_loc acc pc_loc =
+  match pc_loc with
+  | [] -> acc
+  | ((x,y),pc)::t ->
+    let pos = "("^(string_of_int x)^","^(string_of_int y)^")\n" in
+    str_of_pc_loc (acc^(str_of_color pc.pcolor)^" "^
+                   (str_of_pc pc.name)^" "^pos) t
+
+let rec str_of_cap acc cap =
+  match cap with
+  | [] -> acc
+  | pc::t ->
+    str_of_cap (acc^(str_of_color pc.pcolor)^" "^
+        (str_of_pc pc.name)^"\n") t
+
+let str_of_score (w,b) =
+  "White :"^(string_of_int w)^", Black: "^(string_of_int b)
+
 (* TODO SPEC *)
 let rec str_of_moves acc moves =
   match moves with
   | [] -> acc
   | (x,y)::t ->
-    str_of_moves (acc^"; ("^(string_of_int x)^","^(string_of_int y)^")") t
+    str_of_moves (acc^" ("^(string_of_int x)^","^(string_of_int y)^")") t
 
 (* TODO SPEC *)
 let rec game_loop game =
+  (*print_endline "Pieces in play:\n";
+    print_endline (game.pc_loc |> str_of_pc_loc "");*)
+  print_endline "Pieces captured\n";
+  print_endline (game.captured |> str_of_cap "");
+  print_endline "Score: ";
+  print_endline (game.score |> str_of_score);
   if game.checkmate <> None then
     match game.checkmate with
     | Some Black -> print_endline "Black Won!"
@@ -30,9 +67,9 @@ let rec game_loop game =
             begin
               if List.mem_assoc pi game.pc_loc then
                 begin
-                  (*print_endline (game |> val_move_lst pi |> str_of_moves "");*)
-                  print_endline (val_move_lst pi game |> List.length |> string_of_int);
-                  ANSITerminal.(print_string [green] "\n> ");
+                  let mv_lst = val_move_lst pi game in
+                  print_endline (mv_lst |> str_of_moves "");
+                  ANSITerminal.(print_string [green] "\nto where? > ");
                   match read_line() with
                   | exception End_of_file -> ()
                   | text2 ->
@@ -42,7 +79,7 @@ let rec game_loop game =
                       match cmd2 with
                       | Move (pi,pf) ->
                         begin
-                          if List.mem pf (val_move_lst pi game) then
+                          if List.mem pf mv_lst then
                             game_loop (do' (Move (pi,pf)) game)
                           else
                             print_endline "Invalid move"; game_loop game
@@ -62,8 +99,7 @@ let rec game_loop game =
           match cmd with
           | Promotion name ->
             begin
-              if name <> King && name <> Pawn
-                 && List.mem_assoc name game.pieces then
+              if List.mem_assoc name game.pieces then
                 game_loop (do' (Promotion name) game)
               else
                 print_endline "Invalid promote"; game_loop game

@@ -20,7 +20,7 @@ type state = {
 }
 
 let init_state j =
-  let re = Str.regexp "[0-9]+" in
+  let re = Str.regexp "-*[0-9]+" in
   let int_tuple_of_json j =
     let s = j |> to_string in
     let pos = Str.search_forward re s 0 in
@@ -38,12 +38,12 @@ let init_state j =
   in
   let name_of_json j =
     let s = j |> to_string in
-    if s = "Pawn" then Pawn
+    if s = "Pawn" then Pawn true
     else if s = "Rook" then Rook true
     else if s = "Knight" then Knight
     else if s = "Bishop" then Bishop
     else if s = "Queen" then Queen
-    else if s = "King" then King
+    else if s = "King" then King true
     else Custom s
   in
   let pattern_of_json j =
@@ -52,8 +52,8 @@ let init_state j =
     else if s = "Right" then Right
     else if s = "DiagR" then DiagR
     else if s = "DiagL" then DiagL
-    else if s = "Pawn" then PawnMov true
-    else if s = "King" then KingMov true
+    else if s = "Pawn" then PawnMov
+    else if s = "King" then KingMov
     else Jump (j |> int_tuple_of_json)
   in
   let piece_ref_of_json j =
@@ -105,7 +105,8 @@ let init_state j =
 (* [in_check miss pcs clr kloc] true if [clr] king is in check
  * requires:
  *  [miss] is a valid list of missing board positions
- *  [pcs] is a valid list of pc_loc with at least king of both colors
+ *  [pcs] is a valid list of piece names associated to their moves
+ *  [pc_loc] is a valid list of pieces associated to their location
  *  [clr] is the color of the king to check
  *  [kloc] is the location of the king whose color is given by [clr] *)
 let in_check miss pcs pc_loc clr kloc =
@@ -150,7 +151,13 @@ let in_check miss pcs pc_loc clr kloc =
     | [] -> false
     | ((x',y'),{name=n;pcolor=colr})::t ->
       begin
-        let p = List.assoc n pcs in
+        let p =
+          match n with
+          | Pawn _ -> List.assoc (Pawn true) pcs
+          | King _ -> List.assoc (King true) pcs
+          | Rook _ -> List.assoc (Rook true) pcs
+          | _ -> List.assoc n pcs
+        in
         List.fold_left (
           fun acc mv ->
             match mv with
@@ -159,20 +166,30 @@ let in_check miss pcs pc_loc clr kloc =
             | Right -> acc || king_in_vec (x,y) (x',y') (x',y') (1,0) false
             | DiagR -> acc || king_in_vec (x,y) (x',y') (x',y') (1,1) false
             | DiagL -> acc || king_in_vec (x,y) (x',y') (x',y') (-1,1) false
-            | PawnMov b ->
+            | PawnMov ->
               begin
                 if colr = White then acc || pking (x,y) (x',y') (-1)
                 else acc || pking (x',y') (x,y) 1
               end
-            | KingMov b -> acc || kking (x,y) (x',y')
+            | KingMov -> acc || kking (x,y) (x',y')
         ) false p
       end
   in
   let ncolor = if clr = Black then White else Black in
   check_helper kloc pc_loc ncolor
 
+let print_pc = function
+  | Rook _ -> print_endline "Rook"
+  | Knight -> print_endline "Knight"
+  | Bishop -> print_endline "Bishop"
+  | Queen -> print_endline "Queen"
+  | King _ -> print_endline "King"
+  | Pawn _ -> print_endline "Pawn"
+  | Custom s -> print_endline s
+
 let val_move_lst (x,y) st =
   let pc = List.assoc (x,y) st.pc_loc in
+  print_pc pc.name; (*TODO REMOVE*)
   let val_lst lst = List.fold_left (
       fun acc (x',y') ->
         let new_pcs = ((x',y'),pc)::(List.remove_assoc (x,y) st.pc_loc) in
@@ -212,7 +229,7 @@ let val_move_lst (x,y) st =
       else movs_of_vec (nx,ny) (vx,vy) true new_acc
   in
   let check_fr dir =
-    if (List.mem (x,y+dir) st.missing
+    if (not (List.mem (x,y+dir) st.missing)
         && not (List.mem_assoc (x,y+dir) st.pc_loc)) then
       [(x,y+dir)]
     else []
@@ -277,12 +294,41 @@ let val_move_lst (x,y) st =
       else if right && rook_castle (1) then (val_lst [(x+2,y)])@new_lst
       else new_lst
   in
+  let first_truth name =
+    match name with
+    | Pawn b -> b
+    | King b -> b
+    | _ -> failwith ""
+  in
+  let p =
+    match pc.name with
+    | Pawn _ -> List.assoc (Pawn true) st.pieces
+    | King _ -> List.assoc (King true) st.pieces
+    | Rook _ -> List.assoc (Rook true) st.pieces
+    | _ -> List.assoc pc.name st.pieces
+  in
   List.fold_left (
     fun acc mv ->
       match mv with
       | Jump (x',y') ->
-        (if pc.pcolor = White then val_lst (check_pos (x+x',-1*(y+y')) acc)
-         else val_lst (check_pos (-1*(x+x'),y+y') acc))
+        (if pc.pcolor = White then (check_pos (x+x',y+(-1*y')) acc)
+         else (check_pos (x+(-1*x'),y+y') acc))
+      | Up -> (movs_of_vec (x,y) (0,-1) false acc)
+      | Right -> (movs_of_vec (x,y) (1,0) false acc)
+      | DiagR -> (movs_of_vec (x,y) (1,1) false acc)
+      | DiagL -> (movs_of_vec (x,y) (-1,1) false acc)
+      | PawnMov ->
+        let b = first_truth pc.name in print_endline (string_of_bool b);
+        if pc.pcolor = White then (pawn_mov (-1) b)
+        else (pawn_mov 1 b)
+      | KingMov -> let b = first_truth pc.name in king_move b
+  ) [] p
+    (*List.fold_left (
+    fun acc mv ->
+      match mv with
+      | Jump (x',y') ->
+        (if pc.pcolor = White then val_lst (check_pos (x+x',y+(-1*y')) acc)
+         else val_lst (check_pos (x+(-1*x'),y+y') acc))
       | Up -> val_lst (movs_of_vec (x,y) (0,-1) false acc)
       | Right -> val_lst (movs_of_vec (x,y) (1,0) false acc)
       | DiagR -> val_lst (movs_of_vec (x,y) (1,1) false acc)
@@ -291,22 +337,22 @@ let val_move_lst (x,y) st =
         if pc.pcolor = White then val_lst (pawn_mov (-1) b)
         else val_lst (pawn_mov 1 b)
       | KingMov b -> king_move b
-  ) [] (List.assoc pc.name st.pieces)
+  ) [] (List.assoc pc.name st.pieces)*)
 
 let do' cmd st =
   let get_score name =
     match name with
-    | Pawn -> 1
+    | Pawn _ -> 1
     | Rook _ -> 5
     | Knight | Bishop -> 3
     | Queen -> 9
-    | King -> failwith "Impossible"
+    | King _ -> failwith "Impossible"
     | Custom _ -> 7
   in
   let update_score cap score =
     match (score,cap.pcolor) with
-    | ((w,b),Black) -> (w,(get_score cap.name)+b)
-    | ((w,b),White) -> ((get_score cap.name)+w,b)
+    | ((w,b),White) -> (w,(get_score cap.name)+b)
+    | ((w,b),Black) -> ((get_score cap.name)+w,b)
   in
   let color_in_check clr check =
     if check then Some clr else None
@@ -343,15 +389,39 @@ let do' cmd st =
   let mv (xi,yi) (xf,yf) =
     let pc = List.assoc (xi,yi) st.pc_loc in
     let ncolor = if st.color = Black then White else Black in
-    if pc.name <> Pawn then
+    if pc.name <> Pawn true && pc.name <> Pawn false then
       if List.mem_assoc (xf,yf) st.pc_loc then
         let cap = List.assoc (xf,yf) st.pc_loc in
-        let pc_lst = ((xf,yf),pc)::(st.pc_loc |>
-          List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf)) in
+        let pc_lst =
+          match pc.name with
+          | King _ ->
+            begin
+              let new_king = {
+                name = King false;
+                pcolor = pc.pcolor
+              }
+              in
+              ((xf,yf),new_king)::(st.pc_loc |>
+                  List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf))
+            end
+          | Rook _ ->
+            begin
+            let new_rook = {
+              name = Rook false;
+              pcolor = pc.pcolor
+            }
+            in
+            ((xf,yf),new_rook)::(st.pc_loc |>
+                List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf))
+            end
+          | _ -> ((xf,yf),pc)::(st.pc_loc |>
+              List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf))
+        in
         let cap_lst = cap::st.captured in
         let kloc = if ncolor = Black then st.bking else st.wking in
         let truth  = in_check st.missing st.pieces pc_lst ncolor kloc in
-        if pc.name = King && st.color = Black then
+        if (pc.name = King true || pc.name = King false) &&
+        st.color = Black then
           let st' = {
               missing = st.missing;
               pieces = st.pieces;
@@ -370,7 +440,8 @@ let do' cmd st =
             }
           in
           color_in_checkmate truth st'
-        else if pc.name = King && st.color = White then
+        else if (pc.name = King true || pc.name = King false)
+        && st.color = White then
           let st' = {
               missing = st.missing;
               pieces = st.pieces;
@@ -409,10 +480,32 @@ let do' cmd st =
           in
           color_in_checkmate truth st'
       else
-        let pc_lst = ((xf,yf),pc)::(st.pc_loc|>List.remove_assoc (xi,yi)) in
+        let pc_lst =
+          match pc.name with
+          | King _ ->
+            begin
+              let new_king = {
+                name = King false;
+                pcolor = pc.pcolor
+              }
+              in
+              ((xf,yf),new_king)::(st.pc_loc|>List.remove_assoc (xi,yi))
+            end
+          | Rook _ ->
+            begin
+            let new_rook = {
+              name = Rook false;
+              pcolor = pc.pcolor
+            }
+            in
+            ((xf,yf),new_rook)::(st.pc_loc|>List.remove_assoc (xi,yi))
+            end
+          | _ -> ((xf,yf),pc)::(st.pc_loc|>List.remove_assoc (xi,yi))
+        in
         let kloc = if ncolor = Black then st.bking else st.wking in
         let truth  = in_check st.missing st.pieces pc_lst ncolor kloc in
-        if pc.name = King && st.color = Black then
+        if (pc.name = King true || pc.name = King false)
+        && st.color = Black then
           let st' = {
               missing = st.missing;
               pieces = st.pieces;
@@ -431,7 +524,8 @@ let do' cmd st =
             }
           in
           color_in_checkmate truth st'
-        else if pc.name = King && st.color = White then
+        else if (pc.name = King true || pc.name = King false)
+        && st.color = White then
           let st' = {
               missing = st.missing;
               pieces = st.pieces;
@@ -471,9 +565,14 @@ let do' cmd st =
           color_in_checkmate truth st'
     else if ((yf = st.trow && st.color = White)
              || (yf = st.brow && st.color = Black)) then
+      let new_pawn = {
+        name = Pawn false;
+        pcolor = pc.pcolor
+      }
+      in
       if List.mem_assoc (xf,yf) st.pc_loc then
         let cap = List.assoc (xf,yf) st.pc_loc in
-        let pc_lst = ((xf,yf),pc)::(st.pc_loc |>
+        let pc_lst = ((xf,yf),new_pawn)::(st.pc_loc |>
             List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf)) in
         let cap_lst = cap::st.captured in
         let kloc = if ncolor = Black then st.bking else st.wking in
@@ -497,7 +596,7 @@ let do' cmd st =
         in
         color_in_checkmate truth st'
       else
-        let pc_lst = ((xf,yf),pc)::(st.pc_loc|>List.remove_assoc (xi,yi)) in
+        let pc_lst = ((xf,yf),new_pawn)::(st.pc_loc|>List.remove_assoc (xi,yi)) in
         let kloc = if ncolor = Black then st.bking else st.wking in
         let truth  = in_check st.missing st.pieces pc_lst ncolor kloc in
         let st' = {
@@ -519,9 +618,14 @@ let do' cmd st =
         in
         color_in_checkmate truth st'
     else
+      let new_pawn = {
+        name = Pawn false;
+        pcolor = pc.pcolor
+      }
+      in
       if List.mem_assoc (xf,yf) st.pc_loc then
         let cap = List.assoc (xf,yf) st.pc_loc in
-        let pc_lst = ((xf,yf),pc)::(st.pc_loc |>
+        let pc_lst = ((xf,yf),new_pawn)::(st.pc_loc |>
             List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf)) in
         let cap_lst = cap::st.captured in
         let kloc = if ncolor = Black then st.bking else st.wking in
@@ -545,7 +649,8 @@ let do' cmd st =
         in
         color_in_checkmate truth st'
       else
-        let pc_lst = ((xf,yf),pc)::(st.pc_loc|>List.remove_assoc (xi,yi)) in
+        let pc_lst = ((xf,yf),new_pawn)::(st.pc_loc|>List.remove_assoc (xi,yi))
+        in
         let kloc = if ncolor = Black then st.bking else st.wking in
         let truth  = in_check st.missing st.pieces pc_lst ncolor kloc in
         let st' = {
@@ -568,7 +673,10 @@ let do' cmd st =
         color_in_checkmate truth st'
   in
   let pc_of_name name =
-    failwith "Unimplemented"
+    {
+      name = name;
+      pcolor = st.color
+    }
   in
   let promote name =
     let pc = pc_of_name name in

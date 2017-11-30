@@ -56,8 +56,6 @@ let parse s =
     else if namestr = "knight" then Knight
     else if namestr = "bishop" then Bishop
     else if namestr = "queen" then Queen
-    else if namestr = "king" then King
-    else if namestr = "pawn" then Pawn
     else Custom namestr
   in
   if Str.string_match requit s 0 || Str.string_match reexit s 0 then Quit

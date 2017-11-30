@@ -11,8 +11,8 @@ type move =
   | Right
   | DiagR
   | DiagL
-  | PawnMov of bool
-  | KingMov of bool
+  | PawnMov
+  | KingMov
 
 (* [color] represents the color of the piece, whether it is black or white. *)
 type color =
@@ -23,12 +23,12 @@ type color =
  * a custom piece created by a player. All custom piece names must be lowercase!
  *)
 type name =
-  | Pawn
+  | Pawn of bool
   | Rook of bool
   | Knight
   | Bishop
   | Queen
-  | King
+  | King of bool
   | Custom of string
 
 (* [piece] represents a chess piece and its color *)

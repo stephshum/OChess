@@ -6,20 +6,20 @@ type move =
   | Right
   | DiagR
   | DiagL
-  | PawnMov of bool
-  | KingMov of bool
+  | PawnMov
+  | KingMov
 
 type color =
   | Black
   | White
 
 type name =
-  | Pawn
+  | Pawn of bool
   | Rook of bool
   | Knight
   | Bishop
   | Queen
-  | King
+  | King of bool
   | Custom of string
 
 type piece = {
