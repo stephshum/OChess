@@ -23,6 +23,9 @@ let rec str_of_pc_loc acc pc_loc =
     str_of_pc_loc (acc^(str_of_color pc.pcolor)^" "^
                    (str_of_pc pc.name)^" "^pos) t
 
+let rec str_of_loc (x,y) =
+  "("^(string_of_int x)^","^(string_of_int y)^")\n"
+
 let rec str_of_cap acc cap =
   match cap with
   | [] -> acc
@@ -31,7 +34,7 @@ let rec str_of_cap acc cap =
         (str_of_pc pc.name)^"\n") t
 
 let str_of_score (w,b) =
-  "White :"^(string_of_int w)^", Black: "^(string_of_int b)
+  "White :"^(string_of_int w)^", Black: "^(string_of_int b)^"\n"
 
 (* TODO SPEC *)
 let rec str_of_moves acc moves =
@@ -40,14 +43,27 @@ let rec str_of_moves acc moves =
   | (x,y)::t ->
     str_of_moves (acc^" ("^(string_of_int x)^","^(string_of_int y)^")") t
 
+let check_str = function
+  | None -> "None"
+  | Some Black -> "Black"
+  | Some White -> "White"
+
 (* TODO SPEC *)
 let rec game_loop game =
   (*print_endline "Pieces in play:\n";
-    print_endline (game.pc_loc |> str_of_pc_loc "");*)
+    print_endline ((game.pc_loc |> str_of_pc_loc "["))^"]\n";*)
   print_endline "Pieces captured\n";
-  print_endline (game.captured |> str_of_cap "");
+  print_endline ((game.captured |> str_of_cap "[")^"]\n");
   print_endline "Score: ";
   print_endline (game.score |> str_of_score);
+  print_endline "Check: ";
+  print_endline (game.check |> check_str);
+  print_endline "WKing Loc: ";
+  print_endline (game.wking |> str_of_loc);
+  print_endline "BKing Loc: ";
+  print_endline (game.bking |> str_of_loc);
+  print_endline ("Turn: "^(game.turn |> string_of_int));
+  print_endline (game.color |> str_of_color);
   if game.checkmate <> None then
     match game.checkmate with
     | Some Black -> print_endline "Black Won!"
@@ -112,9 +128,8 @@ let rec game_loop game =
 let play_game f =
   try
     let game = f |> Yojson.Basic.from_file |> init_state in
-    print_endline (f^" is a valid game");
-    game_loop game;
-    ()
+    print_endline (f^" is a valid game \n");
+    game_loop game
   with
   | _ -> print_endline(f^" is not a valid game file"); ()
 

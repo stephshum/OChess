@@ -237,8 +237,8 @@
   "promote": "None",
   "turn": 1,
   "score": "(0,0)",
-  "wking": "(6,2)",
-  "bking": "(6,9)",
+  "wking": "(6,9)",
+  "bking": "(6,2)",
   "check": "None",
   "checkmate": "None"
 }
