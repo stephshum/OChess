@@ -241,9 +241,9 @@
         <h4>Customize your own board</h4>
       </div>
       <div class="mdl-card__actions mdl-card--border">
-        <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+        <button id = "custom_board" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
           Customize
-        </a>
+        </button>
         <div class="mdl-layout-spacer"></div>
         <i class="material-icons">border_all</i>
       </div>
@@ -254,9 +254,9 @@
         <h4>Create your own new pieces</h4>
       </div>
       <div class="mdl-card__actions mdl-card--border">
-        <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+        <button id = "custom_piece" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
           Create
-        </a>
+        </button>
         <div class="mdl-layout-spacer"></div>
         <i class="material-icons">create</i>
       </div>
@@ -267,9 +267,9 @@
         <h4>Start a new game</h4>
       </div>
       <div class="mdl-card__actions mdl-card--border">
-        <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+        <button id = "play_game" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
           Start
-        </a>
+        </button>
         <div class="mdl-layout-spacer"></div>
         <i class="material-icons">play_circle_filled</i>
       </div>
@@ -299,27 +299,6 @@
         </tbody>
       </table>
     </div>
-
-    <script type="text/javascript">
-      var command = false;
-      $(document).bind("contextmenu",function(e) {
-        e.preventDefault();
-      });
-
-      $(document).keydown(function(e) {
-        if (command) return false;
-        if (e.which === 91) {
-          command = true;
-        } else if (e.which === 123) {
-           return false;
-        }
-      });
-      $(document).keyup(function(e) {
-        if (e.which === 91) {
-          command = false;
-        }
-      });
-    </script>
 
   </body>
 
