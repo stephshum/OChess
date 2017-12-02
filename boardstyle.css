@@ -28,6 +28,7 @@ body {
 
 .square {
     width: 1.0vw;
+    background-image: none;
 }
 
 .void {
