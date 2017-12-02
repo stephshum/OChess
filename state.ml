@@ -1,6 +1,7 @@
 open Command
 open Models
 open Yojson.Basic.Util
+open Boardactions
 
 type state = {
   missing: position list;
