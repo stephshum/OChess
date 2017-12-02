@@ -66,8 +66,8 @@ let rec game_loop game =
   print_endline (game.color |> str_of_color);
   if game.checkmate <> None then
     match game.checkmate with
-    | Some Black -> print_endline "Black Won!"
-    | Some White -> print_endline "White Won!"
+    | Some Black -> print_endline "White Won!"
+    | Some White -> print_endline "Black Won!"
     | None -> failwith "Impossible"
   else
     ANSITerminal.(print_string [blue] "\n> ");
@@ -81,7 +81,9 @@ let rec game_loop game =
           match cmd with
           | PreMove pi ->
             begin
-              if List.mem_assoc pi game.pc_loc then
+              if  game.pc_loc |>
+                  List.filter (fun (_,pce) -> pce.pcolor = game.color) |>
+                  List.mem_assoc pi then
                 begin
                   let mv_lst = val_move_lst pi game in
                   print_endline (mv_lst |> str_of_moves "");
