@@ -2,10 +2,9 @@ open Yojson
 open State
 open Dom
 
-(* shorthand for Dom_html properties *)
+(* shorthand for Dom_html properties and objects *)
 let window = Dom_html.window
-let doc = window##document
-let document = Dom_html.document
+let document = window##document
 let handler = Dom_html.handler
 
 (* [stage] is the type representing what stage the users are in while using the
