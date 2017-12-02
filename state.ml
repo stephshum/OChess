@@ -19,15 +19,6 @@ type state = {
   checkmate: color option
 }
 
-let print_pc = function
-  | Rook _ -> print_endline "Rook"
-  | Knight -> print_endline "Knight"
-  | Bishop -> print_endline "Bishop"
-  | Queen -> print_endline "Queen"
-  | King _ -> print_endline "King"
-  | Pawn _ -> print_endline "Pawn"
-  | Custom s -> print_endline s
-
 let init_state j =
   let re = Str.regexp "-*[0-9]+" in
   let int_tuple_of_json j =
@@ -161,8 +152,6 @@ let in_check miss pcs pc_loc clr kloc =
     | ((x',y'),{name=n;pcolor=colr2})::t ->
       begin
         if colr2 = colr then
-          (*let _ = print_pc n in
-            let _ = print_endline ("("^string_of_int x^","^string_of_int y^")") in*)
           let p =
             match n with
             | Pawn _ -> List.assoc (Pawn true) pcs
@@ -199,7 +188,6 @@ let in_check miss pcs pc_loc clr kloc =
 
 let val_move_lst (x,y) st =
   let pc = List.assoc (x,y) st.pc_loc in
-  print_pc pc.name; (*TODO REMOVE*)
   let val_lst lst = List.fold_left (
       fun acc (x',y') ->
         let new_pcs = ((x',y'),pc)::(List.remove_assoc (x,y) st.pc_loc) in
@@ -298,10 +286,8 @@ let val_move_lst (x,y) st =
                     check_pos (x+1,y))
     in
     if castle = false then
-      let _ = print_endline (basic_mov |> List.length |> string_of_int) in
       val_lst basic_mov
     else
-      let _ = print_endline (basic_mov |> List.length |> string_of_int) in
       let new_lst = val_lst basic_mov in
       let left = List.mem (x-1,y) new_lst in
       let left2 = not (List.mem_assoc (x-2,y) st.pc_loc) in

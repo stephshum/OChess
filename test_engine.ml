@@ -2,6 +2,15 @@ open State
 open Command
 open Models
 
+let print_pc = function
+  | Rook _ -> print_endline "Rook"
+  | Knight -> print_endline "Knight"
+  | Bishop -> print_endline "Bishop"
+  | Queen -> print_endline "Queen"
+  | King _ -> print_endline "King"
+  | Pawn _ -> print_endline "Pawn"
+  | Custom s -> print_endline s
+
 let str_of_color = function
   | Black -> "Black"
   | White -> "White"
@@ -86,6 +95,7 @@ let rec game_loop game =
                   List.mem_assoc pi then
                 begin
                   let mv_lst = val_move_lst pi game in
+                  print_pc (List.assoc pi game.pc_loc).name;
                   print_endline (mv_lst |> str_of_moves "");
                   ANSITerminal.(print_string [green] "\nto where? > ");
                   match read_line() with
