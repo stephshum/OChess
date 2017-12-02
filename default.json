@@ -18,25 +18,25 @@
     "(11,6)","(11,7)","(11,8)","(11,9)","(11,10)","(11,11)"
   ],
   "pieces": [{
-    "name": "Rook",
-    "pattern": [ "Up", "Right" ]
-  },{
-    "name": "Knight",
-    "pattern": [ "(1,2)", "(-1,2)", "(-2,1)", "(-2,-1)",
-      "(1,-2)", "(-1,-2)", "(2,1)", "(2,-1)" ]
-  },{
-    "name": "Bishop",
-    "pattern": [ "DiagL", "DiagR" ]
-  },{
-    "name": "Queen",
-    "pattern": [ "DiagL", "DiagR", "Up", "Right" ]
-  },{
-    "name": "King",
-    "pattern": [ "King" ]
-  },{
-    "name": "Pawn",
-    "pattern": [ "Pawn" ]
-  }],
+      "name": "Rook",
+      "pattern": [ "Up", "Right" ]
+    },{
+      "name": "Knight",
+      "pattern": [ "(1,2)", "(-1,2)", "(-2,1)", "(-2,-1)",
+        "(1,-2)", "(-1,-2)", "(2,1)", "(2,-1)" ]
+    },{
+      "name": "Bishop",
+      "pattern": [ "DiagL", "DiagR" ]
+    },{
+      "name": "Queen",
+      "pattern": [ "DiagL", "DiagR", "Up", "Right" ]
+    },{
+      "name": "King",
+      "pattern": [ "King" ]
+    },{
+      "name": "Pawn",
+      "pattern": [ "Pawn" ]
+    }],
   "pc_loc": [{
       "piece": {
         "name": "Rook",

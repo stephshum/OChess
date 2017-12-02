@@ -1,13 +1,11 @@
 open Yojson
 open State
-open Models
-open Js_of_ocaml
 open Dom
-open Dom_html
 
 (* shorthand for Dom_html properties *)
 let window = Dom_html.window
-let document = window##.document
+let doc = window##document
+let document = Dom_html.document
 let handler = Dom_html.handler
 
 (* [stage] is the type representing what stage the users are in while using the
@@ -27,7 +25,7 @@ let active_squares : ((int * int) list) ref = ref []
 let init_piece_pos : (string * (int * int)) list ref = ref []
 
 (* [chosen_piece] is the piece picked to be moved on the board *)
-let chosen_piece = Dom_html.element Js.t option ref = ref None
+let chosen_piece : Dom_html.element Js.t option ref = ref None
 
 (* [get_element s] is the HTML element with id [s] *)
 let get_element s =
@@ -42,14 +40,16 @@ let get_button s =
 (* [now_playing ()] disables the buttons to customize the board and pieces while
  * the stage is Play *)
 let now_playing () =
-  (get_button "custom_board")##disabled <- (Js.bool true);
-  (get_button "custom_piece")##disabled <- (Js.bool true)
+  (get_button "custom_board")##disabled <- Js._true;
+  (get_button "custom_piece")##disabled <- Js._true;
+  Js._false
 
 (* [enable_buttons ()] enables all buttons at the beginning of game setup *)
 let enable_buttons () =
-  (get_button "custom_board")##disabled <- (Js.bool false);
-  (get_button "custom_piece")##disabled <- (Js.bool false);
-  (get_button "play_game")##disabled <- (Js.bool false)
+  (get_button "custom_board")##disabled <- Js._false;
+  (get_button "custom_piece")##disabled <- Js._false;
+  (get_button "play_game")##disabled <- Js._false;
+  Js._false
 
 (* [get_square r c] is the HTML element for a square on the board at row [r]
  * and column [c] *)
@@ -60,55 +60,63 @@ let get_square r c =
  * and column [c] when customizing the board *)
 let handle_void r c =
   let square = get_square r c in
-  square##style##color <- Js.string "#24425b"
+  square##style##color <- (Js.string "#24425b")
+
+(* [get_image r c] is the image of the piece at element [e] *)
+let get_image e =
+  failwith "Unimpl"
 
 (* [handle_square r c] is the callback for a square on the board at row [r]
- * and column [c] while playing and moving piece [p] *)
-let handle_square r c (p : piece) =
-  match !chosen_piece with
-  | None -> chosen_piece := (get_square r c)
-  | Some x ->
-    let n = String.lowercase_ascii p in
-    let c = String.(get p.pcolor 0 |> lowercase_ascii) in
-    x##style##backgroundImage <- Js.string ("images/" ^ c ^ "_" ^ n ^ ".png");
-    !chosen_piece##style##backgroundImage <- Js.string "none"
+ * and column [c] *)
+let handle_square r c _ =
+  begin
+    match !chosen_piece with
+    | None -> chosen_piece := Some (get_square r c)
+    | Some x ->
+      let i = get_image x in
+      x##style##backgroundImage <- (Js.string i);
+      x##style##backgroundImage <- (Js.string "none")
+  end;
+  Js._false
 
 (* [square_callbacks l] registers callbacks for clicks on active board squares
  * listed in [l] *)
 let rec square_callbacks l =
   if l <> [] then
-    begin
-      match l with
-      | [] -> square_callbacks l
-      | (r,c)::t -> (get_square r c)##onclick <- handler (handle_square r c);
-        square_callbacks t
-    end
+    match l with
+    | [] -> square_callbacks l
+    | (r,c)::t -> (get_square r c)##onclick <- handler (handle_square r c);
+      square_callbacks t
 
 (* [handle_board _] is the callback for the customize board button *)
 let handle_makeboard _ =
   current_stage := Custom_board;
   window##alert (Js.string "You are now customizing your board. You can click
-  any squares on the board to turn them into a void. ")
+  any squares on the board to turn them into a void. ");
+  Js._false
 
 (* [handle_piece _] is the callback for the customize piece button *)
 let handle_makepiece _ =
   current_stage := Custom_piece;
   window##alert (Js.string "You are now customizing a new piece. You can click
   any squares on the board to represent possible squares the new piece can move
-  to relative to its current position. ")
+  to relative to its current position. ");
+  Js._false
 
 (* [handle_play _] is the callback for the start game button *)
 let handle_play _ =
   current_stage := Play;
   now_playing ();
   window##alert (Js.string "You must now place your pieces on the board.
-  Once you have done this, you can now play!")
+  Once you have done this, you can now play!");
+  Js._false
 
 let onload _ =
   now_playing ();
-  (get_element "custom_board")##onclick <- handler handle_makeboard;
-  (get_element "custom_piece")##onclick <- handler handle_makepiece;
-  (get_element "play_game")##onclick <- handler handle_play
+  (get_element "custom_board")##onclick <- (handler handle_makeboard);
+  (get_element "custom_piece")##onclick <- (handler handle_makepiece);
+  (get_element "play_game")##onclick <- (handler handle_play);
+  Js._false
 
 (* [create_state_json squares pieces custom] creates a JSON file for the
  * initial state of the game using the list of active squares [squares],
@@ -118,4 +126,4 @@ let create_state_json squares pieces custom =
   failwith "Unimpl"
 
 let _ =
-  window##onload <- handler onload
+  window##onload <- (handler onload)
