@@ -3,3 +3,5 @@ PKG oUnit
 PKG yojson
 PKG str
 PKG ANSITerminal
+PKG js_of_ocaml
+PKG js_of_ocaml-ocamlbuild
