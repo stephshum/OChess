@@ -40,15 +40,11 @@ body {
 
 .square {
     width: 1.0vw;
-    background-image: none;
-}
-
-.void {
-    background-color: #355C7D;
+    background-image: "none";
 }
 
 .power-up {
-    background-color: #4a0e93;
+    background-color: #a8a8a8;
 }
 
 .black-tile {
