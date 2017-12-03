@@ -1,5 +1,5 @@
 body {
-    background: #24425b;
+    background: linear-gradient(#2d5475,#152b3f);
 }
 
 .title {
@@ -15,9 +15,9 @@ body {
 .piece_images {
     position: absolute;
     top: 35%;
-    left: 58%;
+    left: 60%;
     table-layout: fixed;
-    min-width: 200px;
+    min-width: 150px;
     min-height: 330px;
 }
 
@@ -32,8 +32,6 @@ body {
     transform: translate(-100%, -50%);
     border-collapse: separate;
     table-layout: fixed;
-    background-clip: content-box;
-    background-color: #24425b;
     min-width: 700px;
     min-height: 700px;
 }
