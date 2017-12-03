@@ -9,4 +9,3 @@ play:
 
 clean:
 	ocamlbuild -clean
-	rm boardactions.js
