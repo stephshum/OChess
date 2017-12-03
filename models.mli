@@ -47,11 +47,12 @@ type power =
   | MindControl
   | CultMurder
 
+(*TODO might remove this*)
 (* [powerup] represents the type of a powerup that pieces can gain if their
  * position is the same as the placement of the powerup on the board. The
  * powerup may stay on the board at the same position after or may not. *)
-type powerup = {
+(* type powerup = {
   pow_name: power;
   place: position list;
   persists: bool;
-}
+} *)

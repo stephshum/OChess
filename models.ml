@@ -36,8 +36,9 @@ type power =
   | MindControl
   | CultMurder
 
-type powerup = {
+(*TODO might remove this*)
+(* type powerup = {
   pow_name: power;
   place: position list;
   persists: bool;
-}
+} *)
