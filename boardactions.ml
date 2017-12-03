@@ -18,25 +18,30 @@ let current_stage = ref Custom_piece
 (* [active_squares] is the list of squares on the board that are not void
  * denoted by a pair with row number and column number *)
 let active_squares : ((int * int) list) ref = ref
-    [
-      (0,0);(0,1);(0,2);(0,3);(0,4);(0,5);(0,6);(0,7);(0,8);(0,9);(0,10);(0,11);
-      (1,0);(1,1);(1,2);(1,3);(1,4);(1,5);(1,6);(1,7);(1,8);(1,9);(1,10);(1,11);
-      (2,0);(2,1);(2,2);(2,3);(2,4);(2,5);(2,6);(2,7);(2,8);(2,9);(2,10);(2,11);
-      (3,0);(3,1);(3,2);(3,3);(3,4);(3,5);(3,6);(3,7);(3,8);(3,9);(3,10);(3,11);
-      (4,0);(4,1);(4,2);(4,3);(4,4);(4,5);(4,6);(4,7);(4,8);(4,9);(4,10);(4,11);
-      (5,0);(5,1);(5,2);(5,3);(5,4);(5,5);(5,6);(5,7);(5,8);(5,9);(5,10);(5,11);
-      (6,0);(6,1);(6,2);(6,3);(6,4);(6,5);(6,6);(6,7);(6,8);(6,9);(6,10);(6,11);
-      (7,0);(7,1);(7,2);(7,3);(7,4);(7,5);(7,6);(7,7);(7,8);(7,9);(7,10);(7,11);
-      (8,0);(8,1);(8,2);(8,3);(8,4);(8,5);(8,6);(8,7);(8,8);(8,9);(8,10);(8,11);
-      (9,0);(9,1);(9,2);(9,3);(9,4);(9,5);(9,6);(9,7);(9,8);(9,9);(9,10);(9,11);
-      (10,0);(10,1);(10,2);(10,3);(10,4);(10,5);(10,6);(10,7);(10,8);(10,9);
-      (10,10);(10,11);
-      (11,0);(11,1);(11,2);(11,3);(11,4);(11,5);(11,6);(11,7);(11,8);(11,9);
-      (11,10);(11,11)
-    ]
+  [
+    (0,0);(0,1);(0,2);(0,3);(0,4);(0,5);(0,6);(0,7);(0,8);(0,9);(0,10);(0,11);
+    (1,0);(1,1);(1,2);(1,3);(1,4);(1,5);(1,6);(1,7);(1,8);(1,9);(1,10);(1,11);
+    (2,0);(2,1);(2,2);(2,3);(2,4);(2,5);(2,6);(2,7);(2,8);(2,9);(2,10);(2,11);
+    (3,0);(3,1);(3,2);(3,3);(3,4);(3,5);(3,6);(3,7);(3,8);(3,9);(3,10);(3,11);
+    (4,0);(4,1);(4,2);(4,3);(4,4);(4,5);(4,6);(4,7);(4,8);(4,9);(4,10);(4,11);
+    (5,0);(5,1);(5,2);(5,3);(5,4);(5,5);(5,6);(5,7);(5,8);(5,9);(5,10);(5,11);
+    (6,0);(6,1);(6,2);(6,3);(6,4);(6,5);(6,6);(6,7);(6,8);(6,9);(6,10);(6,11);
+    (7,0);(7,1);(7,2);(7,3);(7,4);(7,5);(7,6);(7,7);(7,8);(7,9);(7,10);(7,11);
+    (8,0);(8,1);(8,2);(8,3);(8,4);(8,5);(8,6);(8,7);(8,8);(8,9);(8,10);(8,11);
+    (9,0);(9,1);(9,2);(9,3);(9,4);(9,5);(9,6);(9,7);(9,8);(9,9);(9,10);(9,11);
+    (10,0);(10,1);(10,2);(10,3);(10,4);(10,5);(10,6);(10,7);(10,8);(10,9);
+    (10,10);(10,11);
+    (11,0);(11,1);(11,2);(11,3);(11,4);(11,5);(11,6);(11,7);(11,8);(11,9);
+    (11,10);(11,11)
+  ]
 
 (* [void_squares] is the list of squares on the board that are void *)
 let void_squares : ((int * int) list) ref = ref []
+
+(* [pic_positions] is the list of possible images for pieces *)
+let pic_positions : (string list) ref = ref
+  ["b_pawn";"w_pawn";"b_rook";"w_rook";"b_knight";"w_knight";
+  "b_bishop";"w_bishop";"b_queen";"w_queen";"b_king";"w_king"]
 
 (* [custom_moves] is a list of possible movements for the custom piece *)
 let custom_moves : ((int * int) list) ref = ref []
@@ -71,14 +76,10 @@ let get_square r c =
 let make_void e =
   e##style##backgroundColor <- (Js.string "#24425b")
 
-(* [get_image e] is the image of the piece at element [e] *)
-let get_image e =
-  e##style##backgroundImage |> Js.to_string
-
 (* [handle_square r c _] is the callback for a square on the board at row [r]
  * and column [c] *)
 let handle_square r c _ =
-  let square = get_square r c in
+  let sq = get_square r c in
   let m = (11-r, c) in
   begin
     match !current_stage with
@@ -88,19 +89,23 @@ let handle_square r c _ =
         void_squares := m::(r,c)::(!void_squares);
         active_squares := List.filter (fun x -> x <> (r,c) && (x <> m))
           !active_squares;
-        make_void square;
+        make_void sq;
         snd m |> get_square (fst m) |> make_void)
       else (
-        square##style##backgroundImage <- (Js.string !chosen_image);
-        chosen_image := "none")
+        if List.mem (r,c) !active_squares then
+          let s = String.(sub !chosen_image 14 (length !chosen_image - 14)) in
+          let o = get_square (fst m) (snd m) in
+          sq##style##backgroundImage <- (Js.string !chosen_image);
+          o##style##backgroundImage <- (Js.string ("url('images/b_" ^ s)))
     | Play ->
       begin
         match !chosen_piece with
-        | None -> chosen_piece := Some square
+        | None -> chosen_piece := Some sq
         | Some x ->
-          let i = get_image x in
-          square##style##backgroundImage <- (Js.string i);
-          x##style##backgroundImage <- (Js.string "none")
+          let i = x##style##backgroundImage in
+          sq##style##backgroundImage <- i;
+          x##style##backgroundImage <- (Js.string "none");
+          chosen_piece := None
       end
   end;
   Js._false
@@ -113,20 +118,28 @@ let rec square_callbacks l =
   | (r,c)::t -> (get_square r c)##onclick <- handler (handle_square r c);
     square_callbacks t
 
-(* [handle_pics r c _] is the callback for an image of a piece *)
-let handle_pics r c _ =
-  failwith "Unimpl"
+(* [handle_pic h _] is the callback for an image of a piece *)
+let handle_pic h _ =
+  begin
+    match !current_stage with
+    | Custom_board -> chosen_image := "url('images/" ^ h ^ ".png')"
+    | _ -> ()
+  end;
+  Js._false
 
-(* [pic_callbacks r c] regusters callbacks for clicks on images of pieces *)
-let rec pic_callbacks r c =
-  failwith "Unimpl"
+(* [pic_callbacks l] registers callbacks for clicks on images of pieces *)
+let rec pic_callbacks l =
+  match l with
+  | [] -> ()
+  | h::t -> (get_element h)##onclick <- handler (handle_pic h);
+    pic_callbacks t
 
 (* [now_playing ()] disables the buttons to customize the board and pieces while
  * the stage is Play *)
 let now_playing () =
   (get_button "custom_board")##disabled <- Js._true;
   (get_button "custom_piece")##disabled <- Js._true;
-  Js._false
+  ()
 
 (* [enable_buttons ()] enables all buttons at the beginning of game setup *)
 let enable_buttons () =
@@ -162,6 +175,7 @@ let onload _ =
   (get_element "custom_board")##onclick <- (handler handle_makeboard);
   (get_element "play_game")##onclick <- (handler handle_play);
   square_callbacks !active_squares;
+  pic_callbacks !pic_positions;
   Js._false
 
 (* [create_state_json squares pieces custom] creates a JSON file for the
