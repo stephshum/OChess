@@ -14,11 +14,11 @@ body {
 
 .piece_images {
     position: absolute;
-    top: 40%;
+    top: 35%;
     left: 58%;
     table-layout: fixed;
     min-width: 200px;
-    min-height: 300px;
+    min-height: 330px;
 }
 
 .image {
