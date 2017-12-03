@@ -41,10 +41,15 @@ let void_squares : ((int * int) list) ref = ref []
 (* [pic_positions] is the list of possible images for pieces *)
 let pic_positions : (string list) ref = ref
   ["b_pawn";"w_pawn";"b_rook";"w_rook";"b_knight";"w_knight";
-  "b_bishop";"w_bishop";"b_queen";"w_queen";"b_king";"w_king"]
+   "b_bishop";"w_bishop";"b_queen";"w_queen";"b_king";"w_king";
+   "b_custom";"w_custom"]
 
 (* [custom_moves] is a list of possible movements for the custom piece *)
-let custom_moves : ((int * int) list) ref = ref []
+let custom_moves : (string list) ref = ref []
+
+(* [custom_squares] is a list of squares from customizing and the initial color *)
+let custom_squares : ((Dom_html.element Js.t) * (Js.js_string Js.t)) list ref =
+  ref []
 
 (* [init_piece_pos] is a list of the pieces placed on the board before a
  * game has begun denoted by its name and the row and column of its square *)
@@ -72,6 +77,24 @@ let get_button s =
 let get_square r c =
   get_element ("T-" ^ (string_of_int r) ^ "," ^ (string_of_int c))
 
+(* [get_row r l] is a list of HTML elements in row [r] *)
+let rec get_row r c (l : Dom_html.element Js.t list) =
+  if List.length l = 12 then l
+  else get_row r (c+1) ((get_square r c)::l)
+
+(* [get_col r l] is a list of HTML elements in column [c] *)
+let rec get_col r c (l : Dom_html.element Js.t list) =
+  if List.length l = 12 then l
+  else get_col (r+1) c ((get_square r c)::l)
+
+(* [get_diagL r l] is a list of HTML elements in the left diagonal *)
+let rec get_diagL r c l =
+  failwith "Unimpl"
+
+(* [get_diagR r l] is a list of HTML elements in the right diagonal *)
+let rec get_diagR r c l =
+  failwith "Unimpl"
+
 (* [make_void e] makes the square for element [e] a void color *)
 let make_void e =
   e##style##backgroundColor <- (Js.string "#24425b")
@@ -83,7 +106,29 @@ let handle_square r c _ =
   let m = (11-r, c) in
   begin
     match !current_stage with
-    | Custom_piece -> custom_moves := (r,c)::(!custom_moves)
+    | Custom_piece ->
+      let d = (r-6,c-6) in
+      let p =
+        begin
+          match d with
+          | (0,-1)  | (0,1)  ->
+            List.map (fun x -> let b' = x##style##backgroundColor in
+            custom_squares := (x,b')::(!custom_squares);
+            x##style##backgroundColor <- (Js.string "#ffd456"))
+            (get_row r 0 []); "Right"
+          | (-1,0)  | (1,0)  ->
+            List.map (fun x -> let b' = x##style##backgroundColor in
+            custom_squares := (x,b')::(!custom_squares);
+            x##style##backgroundColor <- (Js.string "#ffd456"))
+            (get_col 0 c []); "Up"
+          | (1,1)  | (-1,-1) -> "DiagR"
+          | (-1,1) | (1,-1)  -> "DiagL"
+          | _ -> "(" ^ (string_of_int (r-6)) ^ "," ^ (string_of_int (c-6)) ^ ")"
+        end in
+      let b = sq##style##backgroundColor in
+      custom_moves := p::(!custom_moves);
+      custom_squares := (sq,b)::(!custom_squares);
+      sq##style##backgroundColor <- (Js.string "#ffd456")
     | Custom_board ->
       if !chosen_image = "none" then (
         void_squares := m::(r,c)::(!void_squares);
@@ -151,6 +196,8 @@ let enable_buttons () =
 (* [handle_piece _] is the callback for the customize piece button *)
 let handle_makepiece _ =
   current_stage := Custom_piece;
+  let c = get_square 6 6 in
+  c##style##backgroundImage <- (Js.string "url('images/w_custom.png')");
   window##alert (Js.string "You are now customizing a new piece. Click adjacent
   squares for unranged movement and others for jumps.");
   Js._false
@@ -158,6 +205,9 @@ let handle_makepiece _ =
 (* [handle_board _] is the callback for the customize board button *)
 let handle_makeboard _ =
   current_stage := Custom_board;
+  let c = get_square 6 6 in
+  c##style##backgroundImage <- (Js.string "none");
+  List.map (fun x -> (fst x)##style##backgroundColor <- snd x) !custom_squares;
   window##alert (Js.string "You are now customizing your board. Click to turn
   squares into voids, and finally move pieces on to the board.");
   Js._false
