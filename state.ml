@@ -390,9 +390,37 @@ let do' cmd st =
      st
   in
   (* [check_for_power (xf, yf) st] will return [Some x] if there is a
-   * powerup associated*)
+   * powerup associated with the positions, None otherwise*)
   let check_for_power (xf, yf) st =
     List.assoc_opt (xf, yf) st.powvalid
+  in
+  (* [pow1 loc st] will change the state for the powerup Elimination
+   * located at [loc] as in "powerup_ideas.txt"*)
+  let pow1 loc st =
+    let predic pos = ((fst pos) <> loc) in
+    let unpredic pos = ((fst pos) = loc) in
+    let updated_pieces = List.filter predic st.pc_loc in
+    let captured_pieces = List.filter unpredic st.pc_loc in
+    let only_pieces = List.map fst captured_pieces in
+    {st with pc_loc = updated_pieces;
+             captured = only_pieces@st.captured}
+  (* [use_power pow st] will return an updated state with changes enacted
+   * as described in "powerup_ideas.txt" if [pow] is [Some x]. If
+   * [pow] is [None],st will remain the same
+   * *)
+  let use_power loc pow st =
+    match pow with
+    | Some x -> begin
+        match x with
+        | RaisetheDead -> pow0 loc st
+        | Elimination -> pow1 loc st
+        | NoJumpers -> pow2 loc st
+        | SecondChance -> pow3 loc st
+        | Clone -> pow4 loc st
+        | MindControl -> pow5 loc st
+        | CultMurder -> pow6 loc st
+    end
+    | None -> st
   let mv (xi,yi) (xf,yf) =
     let pc = List.assoc (xi,yi) st.pc_loc in
     let ncolor = if st.color = Black then White else Black in

@@ -1,0 +1,8 @@
+### Starting build.
+# Target: myocamlbuild, tags: { link, native, ocaml, program }
+ocamlfind ocamlopt unix.cmxa -I /Users/Stephanie/.opam/4.05.0/lib/ocamlbuild /Users/Stephanie/.opam/4.05.0/lib/ocamlbuild/ocamlbuildlib.cmxa -linkpkg myocamlbuild.ml /Users/Stephanie/.opam/4.05.0/lib/ocamlbuild/ocamlbuild.cmx -o myocamlbuild
++ ocamlfind ocamlopt unix.cmxa -I /Users/Stephanie/.opam/4.05.0/lib/ocamlbuild /Users/Stephanie/.opam/4.05.0/lib/ocamlbuild/ocamlbuildlib.cmxa -linkpkg myocamlbuild.ml /Users/Stephanie/.opam/4.05.0/lib/ocamlbuild/ocamlbuild.cmx -o myocamlbuild
+File "myocamlbuild.ml", line 1, characters 35-68:
+Error: Unbound module Ocamlbuild_js_of_ocaml
+Command exited with code 2.
+# Compilation unsuccessful.
