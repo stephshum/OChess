@@ -185,7 +185,7 @@ let in_check miss pcs pc_loc clr kloc =
                 | Up -> acc' || king_in_vec (x,y) (x',y') (x',y') (0,1) false
                 | Right -> acc' || king_in_vec (x,y) (x',y') (x',y') (1,0) false
                 | DiagR -> acc' || king_in_vec (x,y) (x',y') (x',y') (1,1) false
-                | DiagL -> acc' || king_in_vec (x,y) (x',y') (x',y') (-1,1) false
+                | DiagL -> acc'|| king_in_vec (x,y) (x',y') (x',y') (-1,1) false
                 | PawnMov ->
                   begin
                     if colr = White then acc' || pking (x,y) (x',y') (-1)
@@ -381,8 +381,7 @@ let do' cmd st =
   let check_for_power (xf, yf) st =
     List.assoc_opt (xf, yf) st.powvalid
   in
-  (* [pow1 loc st] will change the state for the powerup Elimination
-   * located at [loc] as in "powerup_ideas.txt"*)
+  (* Elimination*)
   let pow1 (x, y) st =
     let predic p = (snd (fst p) = y) in
     let two_list = List.partition predic st.pc_loc in
@@ -391,18 +390,26 @@ let do' cmd st =
     {st with pc_loc = updated;
              captured = only_pieces@st.captured}
   in
-  (* let pow2 st =
-    let predic (snd p) =
-      match p with
-      | Jump x -> true
-      | _ -> false
+  let pow2 st =
+    let predic1 (p: (name * (move list))) =
+      let lst = snd p in
+      List.fold_left (fun acc m -> match m with
+          | Jump _ -> true
+          | _ -> acc) false lst
     in
-    let two_list = List.partition predic st.pieces in *)
-
-
-
-  (* [pow6 loc st] will change the state for the powerup CultMurder
-   * located at [loc] as in "powerup_ideas.txt"*)
+    let two_list1 = List.partition predic1 st.pieces in
+    let (kill, leave) = two_list1 in
+    let bad_names = List.map fst kill in
+    let predic2 p =
+      let pz = snd p in
+      List.mem (pz.name) bad_names in
+    let two_list2 = List.partition predic2 st.pc_loc in
+    let (captured, updated) = two_list2 in
+    let only_pieces = List.map snd captured in
+    {st with pc_loc = updated;
+             captured = only_pieces@st.captured}
+  in
+  (* CultMurder*)
   let pow6 (x, y) st =
     let surrounding = [(x,y);(x-1,y+1); (x+1,y-1);
                        (x+1,y);(x,y+1);(x+1,y+1);
@@ -420,7 +427,7 @@ let do' cmd st =
   in
   let use_power loc pow st =
     match pow with
-    (* | Some x -> begin
+    | Some x -> begin
         match x with
         | RaisetheDead -> pow0 loc st
         | Elimination -> pow1 loc st
@@ -429,7 +436,7 @@ let do' cmd st =
         | Clone -> pow4 loc st
         | MindControl -> pow5 loc st
         | CultMurder -> pow6 loc st
-    end *)
+    end
     | None -> st
   in
   let mv (xi,yi) (xf,yf) =
