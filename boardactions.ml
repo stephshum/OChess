@@ -1,5 +1,4 @@
 open Yojson
-open State
 open Dom
 
 (* shorthand for Dom_html properties and objects *)
@@ -9,11 +8,14 @@ let handler = Dom_html.handler
 
 (* [stage] is the type representing what stage the users are in while using the
  * application *)
-type stage = Custom_piece | Custom_board | Play
+type stage = Custom_piece | Custom_board | Play | Start
 
 (* [current_stage] is the stage the users are in currently and starts initially
  * at Custom_board *)
-let current_stage = ref Custom_piece
+let current_stage = ref Start
+
+(* [current_state] is the current state of the board game *)
+(* let current_state = ref state *)
 
 (* [active_squares] is the list of squares on the board that are not void
  * denoted by a pair with row number and column number *)
@@ -87,9 +89,29 @@ let rec get_col r c (l : Dom_html.element Js.t list) =
   if List.length l = 12 then l
   else get_col (r+1) c ((get_square r c)::l)
 
-(* [get_diagL r l] is a list of HTML elements in the left diagonal *)
-let rec get_diagL r c l =
-  failwith "Unimpl"
+(* [get_up_diagL r l] is a list of HTML elements in the left up diagonal *)
+let rec get_up_diagL r c l =
+  if r >= 0 && c >= 0 then
+    get_up_diagL (r-1) (c-1) ((get_square r c)::l)
+  else l
+
+  (* [get_d_diagL r l] is a list of HTML elements in the left down diagonal *)
+let rec get_d_diagL r c l =
+  if r < 12 && c < 12 then
+    get_d_diagL (r+1) (c+1) ((get_square r c)::l)
+  else l
+
+(* [get_up_diagR r l] is a list of HTML elements in the right up diagonal *)
+let rec get_up_diagR r c l =
+  if r >= 0 && c < 12 then
+    get_up_diagR (r-1) (c+1) ((get_square r c)::l)
+  else l
+
+  (* [get_d_diagR r l] is a list of HTML elements in the right down diagonal *)
+let rec get_d_diagR r c l =
+  if r < 12 && c >= 0 then
+    get_d_diagR (r+1) (c-1) ((get_square r c)::l)
+  else l
 
 (* [get_diagR r l] is a list of HTML elements in the right diagonal *)
 let rec get_diagR r c l =
@@ -97,7 +119,7 @@ let rec get_diagR r c l =
 
 (* [make_void e] makes the square for element [e] a void color *)
 let make_void e =
-  e##style##backgroundColor <- (Js.string "#24425b")
+  e##style##backgroundColor <- (Js.string "transparent")
 
 (* [handle_square r c _] is the callback for a square on the board at row [r]
  * and column [c] *)
@@ -106,6 +128,7 @@ let handle_square r c _ =
   let m = (11-r, c) in
   begin
     match !current_stage with
+    | Start -> ()
     | Custom_piece ->
       let d = (r-6,c-6) in
       let p =
@@ -121,8 +144,16 @@ let handle_square r c _ =
             custom_squares := (x,b')::(!custom_squares);
             x##style##backgroundColor <- (Js.string "#ffd456"))
             (get_col 0 c []); "Up"
-          | (1,1)  | (-1,-1) -> "DiagR"
-          | (-1,1) | (1,-1)  -> "DiagL"
+          | (1,1)  | (-1,-1) ->
+            List.map (fun x -> let b' = x##style##backgroundColor in
+            custom_squares := (x,b')::(!custom_squares);
+            x##style##backgroundColor <- (Js.string "#ffd456"))
+            ((get_up_diagL r c [])@(get_d_diagL r c [])); "DiagL"
+          | (-1,1) | (1,-1)  ->
+            List.map (fun x -> let b' = x##style##backgroundColor in
+            custom_squares := (x,b')::(!custom_squares);
+            x##style##backgroundColor <- (Js.string "#ffd456"))
+            ((get_up_diagR r c [])@(get_d_diagR r c [])); "DiagR"
           | _ -> "(" ^ (string_of_int (r-6)) ^ "," ^ (string_of_int (c-6)) ^ ")"
         end in
       let b = sq##style##backgroundColor in
@@ -163,11 +194,16 @@ let rec square_callbacks l =
   | (r,c)::t -> (get_square r c)##onclick <- handler (handle_square r c);
     square_callbacks t
 
-(* [handle_pic h _] is the callback for an image of a piece *)
-let handle_pic h _ =
+(* [handle_pic h e _] is the callback for an image of a piece *)
+let handle_pic h e _ =
   begin
     match !current_stage with
-    | Custom_board -> chosen_image := "url('images/" ^ h ^ ".png')"
+    | Custom_board ->
+      (if !chosen_image <> "none" then (
+        let n = String.(sub !chosen_image 12 (length !chosen_image - 18)) in
+        (get_element n)##style##backgroundColor <- (Js.string "transparent")));
+      chosen_image := "url('images/" ^ h ^ ".png')";
+      e##style##backgroundColor <- (Js.string "#2d5475");
     | _ -> ()
   end;
   Js._false
@@ -176,7 +212,8 @@ let handle_pic h _ =
 let rec pic_callbacks l =
   match l with
   | [] -> ()
-  | h::t -> (get_element h)##onclick <- handler (handle_pic h);
+  | h::t -> let e = (get_element h) in
+    e##onclick <- handler (handle_pic h e);
     pic_callbacks t
 
 (* [now_playing ()] disables the buttons to customize the board and pieces while
@@ -205,6 +242,7 @@ let handle_makepiece _ =
 (* [handle_board _] is the callback for the customize board button *)
 let handle_makeboard _ =
   current_stage := Custom_board;
+  chosen_image := "none";
   let c = get_square 6 6 in
   c##style##backgroundImage <- (Js.string "none");
   List.map (fun x -> (fst x)##style##backgroundColor <- snd x) !custom_squares;
@@ -215,6 +253,7 @@ let handle_makeboard _ =
 (* [handle_play _] is the callback for the start game button *)
 let handle_play _ =
   current_stage := Play;
+  chosen_image := "none";
   now_playing ();
   window##alert (Js.string "Start playing! You will not be able to customize
   the board or pieces further.");
@@ -228,11 +267,11 @@ let onload _ =
   pic_callbacks !pic_positions;
   Js._false
 
-(* [create_state_json squares pieces custom] creates a JSON file for the
+(* [create_json squares pieces custom] creates a JSON file for the
  * initial state of the game using the list of active squares [squares],
  * the initial position of pieces [pieces], and the movement pattern of the
  * customized piece [custom] *)
-let create_state_json squares pieces custom =
+let create_json () =
   failwith "Unimpl"
 
 let _ =
