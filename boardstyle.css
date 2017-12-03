@@ -12,13 +12,25 @@ body {
   transform: rotate(90deg);
 }
 
+.piece_images {
+    position: absolute;
+    top: 40%;
+    left: 58%;
+    table-layout: fixed;
+    min-width: 200px;
+    min-height: 300px;
+}
+
+.image {
+    width: 1.0vw
+}
+
 .chessboard {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-100%, -50%);
     border-collapse: separate;
-    table-layout: fixed;
     table-layout: fixed;
     background-clip: content-box;
     background-color: #24425b;
@@ -51,7 +63,7 @@ body {
     position: absolute;
     margin: 0;
     top: 10%;
-    left: 53%;
+    left: 55%;
     padding: 10px;
 }
 
