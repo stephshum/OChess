@@ -396,13 +396,25 @@ let do' cmd st =
   in
   (* [pow1 loc st] will change the state for the powerup Elimination
    * located at [loc] as in "powerup_ideas.txt"*)
-  let pow1 loc st =
-    let predic pos = ((fst pos) <> loc) in
-    let unpredic pos = ((fst pos) = loc) in
-    let updated_pieces = List.filter predic st.pc_loc in
-    let captured_pieces = List.filter unpredic st.pc_loc in
-    let only_pieces = List.map fst captured_pieces in
+  let pow1 (x,y) st =
+    let predic p = (snd (fst p) = y) in
+    let two_list = List.partition predic st.pc_loc in
+    let (captured, updated) = two_list in
+    let only_pieces = List.map fst captured in
     {st with pc_loc = updated_pieces;
+             captured = only_pieces@st.captured}
+  in
+  (* [pow6 loc st] will change the state for the powerup CultMurder
+   * located at [loc] as in "powerup_ideas.txt"*)
+  let pow6 (x, y) st =
+    let surrounding = [(x,y);(x-1,y+1); (x+1,y-1);
+                       (x+1,y);(x,y+1);(x+1,y+1);
+                       (x-1,y);(x,y-1);(x-1,y-1)] in
+    let predic p = List.mem (fst p) surrounding in
+    let two_list = List.partition predic st.pc_loc in
+    let (captured, updated) = two_list in
+    let only_pieces = List.map fst captured in
+    {st with pc_loc = updated;
              captured = only_pieces@st.captured}
   (* [use_power pow st] will return an updated state with changes enacted
    * as described in "powerup_ideas.txt" if [pow] is [Some x]. If
