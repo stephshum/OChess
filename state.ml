@@ -15,6 +15,7 @@ type state = {
   score: (int*int); (* left is White score, right is Black score *)
   wking: (int*int);
   bking: (int*int);
+  powvalid: (position*power) list;
   check: color option;
   checkmate: color option
 }
@@ -85,6 +86,17 @@ let init_state j =
     else if s = "Black" then Some Black
     else Some White
   in
+  let powerup_used =
+    let num = Random.int 6 in
+    match num with
+    | 0 -> RaisetheDead
+    | 1 -> Elimination
+    | 2 -> NoJumpers
+    | 3 -> SecondChance
+    | 4 -> Clone
+    | 5 -> MindControl
+    | 6 -> CultMurder
+  in
   {
     missing = j |> member "missing" |> to_list |> List.map int_tuple_of_json;
     pieces = j |> member "pieces" |> to_list |> List.map piece_ref_of_json;
@@ -98,6 +110,7 @@ let init_state j =
     score = j |> member "score" |> int_tuple_of_json;
     wking = j |> member "wking" |> int_tuple_of_json;
     bking = j |> member "bking" |> int_tuple_of_json;
+    powvalid = (((5,2), powerup_used); ((6,9), powerup_used));
     check = j |> member "check" |> check_of_json;
     checkmate = j |> member "promote" |> checkmate_of_json
   }
@@ -376,6 +389,10 @@ let do' cmd st =
     else
      st
   in
+  (* [check_for_power (xf, yf) st] will return [Some x] if there is a
+   * powerup associated*)
+  let check_for_power (xf, yf) st =
+    List.assoc_opt (xf, yf) st.powvalid
   let mv (xi,yi) (xf,yf) =
     let pc = List.assoc (xi,yi) st.pc_loc in
     let ncolor = if st.color = Black then White else Black in

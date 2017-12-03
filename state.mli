@@ -18,6 +18,7 @@ open Models
  *    right is the score of black.
  *  [wking] is the position of the white king
  *  [bking] is the position of the black king
+ *  [powvalid] is a list of 2-tuples of powerups and their locations
  *  [check] is an option of the player in check
  *  [checkmate] is an option of the player in checkmate; ends game *)
 type state = {
@@ -33,6 +34,7 @@ type state = {
   score: (int*int); (* left is White score, right is Black score *)
   wking: (int*int);
   bking: (int*int);
+  powvalid: (position*power) list;
   check: color option;
   checkmate: color option
 }
