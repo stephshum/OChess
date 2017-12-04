@@ -396,28 +396,22 @@ let do' cmd st =
   in
   (*Raise the Dead*)
   let pow0 (x,y) st =
+    let higherpow l c =
+      let poten = l in
+      let predic p = List.mem p st.missing in
+      let two_list = List.partition predic poten in
+      let (_, not_void) = two_list in
+      let jus_pos = List.map fst st.pc_loc in
+      let predic2 p = List.mem p jus_pos in
+      let two_list2 = List.partition predic2 not_void in
+      let (_, valid) = two_list2 in
+      let new_pawns = List.map (fun x -> (x, {name = Pawn true; pcolor = c})) valid in
+      {st with pc_loc = new_pawns}
+    in
     if (st.color = White) then
-      let poten = [(x,y+1); (x+1, y+1); (x-1, y+1)] in
-      let predic p = List.mem p st.missing in
-      let two_list = List.partition predic poten in
-      let (_, not_void) = two_list in
-      let jus_pos = List.map fst st.pc_loc in
-      let predic2 p = List.mem p jus_pos in
-      let two_list2 = List.partition predic2 not_void in
-      let (_, valid) = two_list2 in
-      let new_pawns = List.map (fun x -> (x, {name = Pawn true; pcolor = White})) valid in
-      {st with pc_loc = new_pawns}
+      higherpow [(x,y+1); (x+1, y+1); (x-1, y+1)] White
     else
-      let poten = [(x,y-1); (x+1, y-1); (x-1, y-1)] in
-      let predic p = List.mem p st.missing in
-      let two_list = List.partition predic poten in
-      let (_, not_void) = two_list in
-      let jus_pos = List.map fst st.pc_loc in
-      let predic2 p = List.mem p jus_pos in
-      let two_list2 = List.partition predic2 not_void in
-      let (_, valid) = two_list2 in
-      let new_pawns = List.map (fun x -> (x, {name = Pawn true; pcolor = Black})) valid in
-      {st with pc_loc = new_pawns}
+      higherpow [(x,y-1); (x+1, y-1); (x-1, y-1)] Black
   in
   (* Elimination*)
   let pow1 (x, y) st =
@@ -453,8 +447,8 @@ let do' cmd st =
     same line as piece
     random piece if ther randomly selected spot fits the criteria*)
   let pow3 (x, y) st =
-     if st.color = White then
-      let my_pieces = List.filter (fun x -> (x.pcolor = White)) st.captured in
+    let higherpow c =
+      let my_pieces = List.filter (fun x -> (x.pcolor = c)) st.captured in
       let my_array = Array.of_list my_pieces in
       let my_len = Array.length my_array in
       let ran = Random.int (my_len - 1) in
@@ -470,78 +464,52 @@ let do' cmd st =
          (List.mem (x, ran_spot) st.missing) then
         st
       else
-        {st with pc_loc = ((x, ran_spot), chosen)::(st.pc_loc)}
-     else
-       let my_pieces = List.filter (fun x -> (x.pcolor = Black)) st.captured in
-       let my_array = Array.of_list my_pieces in
-       let my_len = Array.length my_array in
-       let ran = Random.int (my_len - 1) in
-       let chosen = Array.get my_array ran in
-       let rec rem lst acc a =
-         match lst with
-         | x::xs -> if x = a then acc@xs else rem xs (x::acc) a
-         | [] -> acc
-       in
-       let new_cap = rem st.captured [] chosen in
-       let ran_spot = Random.int 11 in
-       if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
-          (List.mem (x, ran_spot) st.missing) then
-         st
-       else
-         {st with pc_loc = ((x, ran_spot), chosen)::(st.pc_loc)}
+        {st with pc_loc = ((x, ran_spot), chosen)::(st.pc_loc);
+                 captured = new_cap}
+    in
+    if st.color = White then
+      higherpow White
+    else
+      higherpow Black
   in
   (*clone*)
   let pow4 (x,y) st =
+    let higherpow c =
+      let my_pieces = List.filter (fun x -> let p = snd x in (p.pcolor = c)) st.pc_loc in
+      let my_array = Array.of_list my_pieces in
+      let my_len = Array.length my_array in
+      let ran = Random.int (my_len - 1) in
+      let chosen = Array.get my_array ran in
+      let ran_spot = Random.int 11 in
+      if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
+         (List.mem (x, ran_spot) st.missing) then
+        st
+      else
+        {st with pc_loc = ((x, ran_spot), snd chosen)::(st.pc_loc)}
+    in
     if st.color = White then
-      let my_pieces = List.filter (fun x -> let p = snd x in (p.pcolor = White)) st.pc_loc in
-      let my_array = Array.of_list my_pieces in
-      let my_len = Array.length my_array in
-      let ran = Random.int (my_len - 1) in
-      let chosen = Array.get my_array ran in
-      let ran_spot = Random.int 11 in
-      if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
-         (List.mem (x, ran_spot) st.missing) then
-        st
-      else
-        {st with pc_loc = ((x, ran_spot), snd chosen)::(st.pc_loc)}
+      higherpow White
     else
-      let my_pieces = List.filter (fun x -> let p = snd x in (p.pcolor = Black)) st.pc_loc in
-      let my_array = Array.of_list my_pieces in
-      let my_len = Array.length my_array in
-      let ran = Random.int (my_len - 1) in
-      let chosen = Array.get my_array ran in
-      let ran_spot = Random.int 11 in
-      if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
-         (List.mem (x, ran_spot) st.missing) then
-        st
-      else
-        {st with pc_loc = ((x, ran_spot), snd chosen)::(st.pc_loc)}
+      higherpow Black
   in
   let pow5 (x,y) st =
+    let higherpow nc =
+        let my_pieces = List.filter (fun x -> let p = snd x in (p.pcolor = nc)) st.pc_loc in
+        let my_array = Array.of_list my_pieces in
+        let my_len = Array.length my_array in
+        let ran = Random.int (my_len - 1) in
+        let chosen = Array.get my_array ran in
+        let ran_spot = Random.int 11 in
+        if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
+           (List.mem (x, ran_spot) st.missing) then
+          st
+        else
+          {st with pc_loc = ((x, ran_spot), snd chosen)::(st.pc_loc)}
+    in
     if st.color = White then
-      let my_pieces = List.filter (fun x -> let p = snd x in (p.pcolor = Black)) st.pc_loc in
-      let my_array = Array.of_list my_pieces in
-      let my_len = Array.length my_array in
-      let ran = Random.int (my_len - 1) in
-      let chosen = Array.get my_array ran in
-      let ran_spot = Random.int 11 in
-      if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
-         (List.mem (x, ran_spot) st.missing) then
-        st
-      else
-        {st with pc_loc = ((x, ran_spot), snd chosen)::(st.pc_loc)}
+      higherpow Black
     else
-      let my_pieces = List.filter (fun x -> let p = snd x in (p.pcolor = White)) st.pc_loc in
-      let my_array = Array.of_list my_pieces in
-      let my_len = Array.length my_array in
-      let ran = Random.int (my_len - 1) in
-      let chosen = Array.get my_array ran in
-      let ran_spot = Random.int 11 in
-      if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
-         (List.mem (x, ran_spot) st.missing) then
-        st
-      else
-        {st with pc_loc = ((x, ran_spot), snd chosen)::(st.pc_loc)}
+      higherpow White
   in
   (* CultMurder*)
   let pow6 (x, y) st =
