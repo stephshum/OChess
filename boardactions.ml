@@ -1,4 +1,4 @@
-open Yojson
+open Yojson.Basic.Util
 open Printf
 open Dom
 open Command
@@ -55,9 +55,9 @@ let custom_moves : (string list) ref = ref []
 let custom_squares : ((Dom_html.element Js.t) * (Js.js_string Js.t)) list ref =
   ref []
 
-(* [init_piece_pos] is a list of the pieces placed on the board before a
+(* [init_pieces] is a list of the pieces placed on the board before a
  * game has begun denoted by its name and the row and column of its square *)
-let init_piece_pos : (string * (int * int)) list ref = ref []
+let init_pieces : (string * (int * int)) list ref = ref []
 
 (* [chosen_piece] is the piece picked to be moved on the board during play *)
 let chosen_piece : Dom_html.element Js.t option ref = ref None
@@ -115,9 +115,9 @@ let rec get_d_diagR r c l =
     get_d_diagR (r+1) (c-1) ((get_square r c)::l)
   else l
 
-(* [get_diagR r l] is a list of HTML elements in the right diagonal *)
-let rec get_diagR r c l =
-  failwith "Unimpl"
+(* [get_image u] is the name of the image with url [u] *)
+let get_image u =
+  String.(sub !chosen_image 12 (length !chosen_image - 18))
 
 (* [make_void e] makes the square for element [e] a void color *)
 let make_void e =
@@ -202,7 +202,7 @@ let handle_pic h e _ =
     match !current_stage with
     | Custom_board ->
       (if !chosen_image <> "none" then (
-          let n = String.(sub !chosen_image 12 (length !chosen_image - 18)) in
+          let n = get_image !chosen_image in
           (get_element n)##style##backgroundColor <- (Js.string "transparent")));
       chosen_image := "url('images/" ^ h ^ ".png')";
       e##style##backgroundColor <- (Js.string "#2d5475");
@@ -252,27 +252,53 @@ let handle_makeboard _ =
   squares into voids, and finally move pieces on to the board.");
   Js._false
 
-(* [create_json ()] creates a JSON file for the
- * initial state of the game using the list of active squares [squares],
- * the initial position of pieces [pieces], and the movement pattern of the
- * customized piece [custom] *)
+(* [pieces_string x s] is the string of pieces and their starting positions *)
+let rec pieces_string x s =
+  begin
+    match x with
+    | [] -> s
+    | (n,(r,c))::t ->
+      let p = if String.get n t = 'b' then "Black" else "White" in
+      let w = get_image n in
+      let x = String.(length w - 2 |> sub w 2 |> capitalize_ascii) in
+      pieces_string t (s^"{\"piece\":{\"name\":\"" ^x^ "\",\"color\":\"" ^p^
+      "\"},\"position\":\"(" (string_of_int r) ^","^ (string_of_int c)^
+      ")\"},")
+  end
+
+(* [create_json ()] creates a JSON file for the initial state of the game *)
 let create_json () =
-  let file = "custom.json" in
-  let conc x y = x ^ ",\"(" ^ (y |> fst |> string_of_int) ^
+  let void x y = x ^ ",\"(" ^ (y |> fst |> string_of_int) ^
                  "," ^ (y |> snd |> string_of_int) ^ ")\"" in
-  let void = List.fold_left conc "" !void_squares in
-  let missing = "{\"missing\":[" ^ String.(sub void 1 (length void - 1)) in
-  let original =  "],\"pieces\": [{\"name\": \"Rook\",\"pattern\": [ \"Up\","^
-                  "\"Right\" ]\n  },{\"name\": \"Knight\",\"pattern\": [ \"(1,2)\", "^
-                  "\"(-1,2)\", \"(-2,1)\", \"(-2,-1)\",\n  \"(1,-2)\", \"(-1,-2)\", "^
-                  "\"(2,1)\", \"(2,-1)\" ]},{\"name\": \"Bishop\",\n  \"pattern\": ["^
-                  " \"DiagL\", \"DiagR\" ]},{\"name\":\"Queen\",\n  \"pattern\": [ "^
-                  "\"DiagL\", \"DiagR\", \"Up\", \"Right\" ]},{\"name\": \"King\",\n "^
-                  " \"pattern\": [ \"King\" ]},{\"name\": \"Pawn\",\"pattern\": [ \"Pawn\" ]"
+  let a' = List.fold_left void "" !void_squares in
+  let a = "{\"missing\":[" ^ String.(sub a' 1 (length a' - 1)) in
+  let b =  "],\"pieces\": [{\"name\": \"Rook\",\"pattern\": [ \"Up\","^
+    "\"Right\" ]},{\"name\": \"Knight\",\"pattern\": [ \"(1,2)\", "^
+    "\"(-1,2)\", \"(-2,1)\", \"(-2,-1)\",\"(1,-2)\", \"(-1,-2)\", "^
+    "\"(2,1)\", \"(2,-1)\" ]},{\"name\": \"Bishop\", \"pattern\": ["^
+    " \"DiagL\", \"DiagR\" ]},{\"name\":\"Queen\", \"pattern\": [ "^
+    "\"DiagL\", \"DiagR\", \"Up\", \"Right\" ]},{\"name\": \"King\","^
+    " \"pattern\": [ \"King\" ]},{\"name\": \"Pawn\",\"pattern\": [ \"Pawn\" ]"
   in
-  let custom = "},{" in
-  let json = missing ^ original ^ custom in
-  let ochannel = open_out file in
+  let c = "},{\"name\":\"custom\",\"pattern\":[" in
+  let d' = List.fold_left (fun x y -> x ^ "\"" ^ y ^ "\",") "" !custom_moves in
+  let d = String.(sub d' 0 (length d' - 1)) ^ "}],\"pc_loc\": [" in
+  let e' = pieces_string !init_pieces "" in
+  let e = String.(sub e' 0 (length e' - 1)) in
+  let f = "],\n  \"captured\": [],\n  \"color\": \"White\",\"" in
+  let g = "\"trow\":" ^ List.(hd !active_squares |> fst |> string_of_int)^"," in
+  let h = "\"brow\":" ^ List.(!active_squares |> length - 1 |> nth |> snd |>
+    string_of_int) ^ "," in
+  let i = "\"promote\": \"None\",\"turn\": 1,\"score\": \"(0,0)\"," in
+  let j' = List.assoc "url('images/w_king.png')" !init_pieces in
+  let j = "\"wking\":\"(" ^ (string_of_int (fst j')) ^ "," ^
+    (string_of_int (snd j')) ^ ")\"," in
+  let k' = List.assoc "url('images/b_king.png')" !init_pieces in
+  let k = "\"bking\":\"(" ^ (string_of_int (fst k')) ^ "," ^
+    (string_of_int (snd k')) ^ ")\"," in
+  let l = " \"check\": \"None\", \"checkmate\": \"None\"}" in
+  let json = a^b^c^e^f^g^h^i^j^k in
+  let ochannel = open_out "custom.json" in
   fprintf ochannel "%s\n" json;
   close_out ochannel
 
