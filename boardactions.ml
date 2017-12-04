@@ -102,18 +102,22 @@ let get_square r c =
 (* [get_row r l] is a list of HTML elements in row [r] *)
 let rec get_row r c (l : Dom_html.element Js.t list) =
   if List.length l = 12 then (
-    List.iter (fun x -> let b' = x##style##backgroundColor in
+    List.iter (fun x ->
+    let b' = x##style##backgroundColor in
     highlighted := (x,b')::(!highlighted);
-    x##style##backgroundColor <- (Js.string "#ffd456")) l)
+    if Js.to_string b' <> "transparent" then (
+      x##style##backgroundColor <- (Js.string "#ffd456"))) l)
   else (
     get_row r (c+1) ((get_square r c)::l))
 
 (* [get_col r l] is a list of HTML elements in column [c] *)
 let rec get_col r c (l : Dom_html.element Js.t list) =
   if List.length l = 12 then (
-    List.iter (fun x -> let b' = x##style##backgroundColor in
+    List.iter (fun x ->
+    let b' = x##style##backgroundColor in
     highlighted := (x,b')::(!highlighted);
-    x##style##backgroundColor <- (Js.string "#ffd456")) l)
+    if Js.to_string b' <> "transparent" then (
+      x##style##backgroundColor <- (Js.string "#ffd456"))) l)
   else (
     get_col (r+1) c ((get_square r c)::l))
 
@@ -143,9 +147,11 @@ let rec get_d_diagR r c l =
 
 (* [get_diag l] highlights the squares in [l] *)
 let get_diag l =
-  List.iter (fun x -> let b' = x##style##backgroundColor in
+  List.iter (fun x ->
+  let b' = x##style##backgroundColor in
   highlighted := (x,b')::(!highlighted);
-  x##style##backgroundColor <- (Js.string "#ffd456")) l
+  if Js.to_string b' <> "transparent" then (
+    x##style##backgroundColor <- (Js.string "#ffd456"))) l
 
 (* [get_image u] is the name of the image with url [u] *)
 let get_image u =
@@ -176,73 +182,90 @@ let highlight_one r c m =
   | "DiagL" -> get_diag ((get_up_diagL r c []) @ (get_d_diagL r c []))
   | "DiagR" -> get_diag ((get_up_diagR r c []) @ (get_d_diagR r c []))
   | x -> let com = String.index x ',' in
-    let r' = String.(sub x 1 (com-1)) |> int_of_string in
+    let r' = String.sub x 1 (com-1) |> int_of_string in
     let c' = String.(sub x (com+1) (length x - com - 2)) |> int_of_string in
     let e = get_square (r+r') (c+c') in
-    highlighted := (e,e##style##backgroundColor)::!highlighted;
-    e##style##backgroundColor <- (Js.string "#ffd456")
+    let b = e##style##backgroundColor in
+    highlighted := (e,b)::!highlighted;
+    if Js.to_string b <> "transparent" then
+      e##style##backgroundColor <- (Js.string "#ffd456")
 
 (* [highlight_moves r c] highlights squares the piece at ([r],[c]) can move to
  * to yellow with move list [m] *)
 let rec highlight_moves r c m =
-  if m <> ["King"] && m <> ["Pawn"] then
+  let i = Js.to_string (get_square r c)##style##backgroundImage in
+  if get_image i = "w_custom" then
     match m with
     | [] -> ()
-    | h::t -> (highlight_one r c h); highlight_moves r c t
+    | h::t -> (highlight_one r c h); (highlight_moves r c t)
+
+(* [piece_helper r c e b] is the helper function for handle_square
+ * during the custom piece stage *)
+let piece_helper r c sq b =
+  let d = (r-6,c-6) in
+  let p =
+    begin
+      match d with
+      | (-1,0) | (1,0)  -> get_col 0 c []; "Up"
+      | (0,-1) | (0,1)  -> get_row r 0 []; "Right"
+      | (1,1)  | (-1,-1) ->
+        get_diag ((get_up_diagL r c []) @ (get_d_diagL r c [])); "DiagL"
+      | (-1,1) | (1,-1)  ->
+        get_diag ((get_up_diagR r c []) @ (get_d_diagR r c [])); "DiagR"
+      | _ -> "(" ^ (string_of_int (r-6)) ^ "," ^ (string_of_int (c-6)) ^ ")"
+    end in
+  custom_moves := p::(!custom_moves);
+  highlighted := (sq,b)::(!highlighted);
+  sq##style##backgroundColor <- (Js.string "#ffd456")
+
+(* [board_helper r c e] is the helper function for handle_square
+ * during the custom board stage *)
+let board_helper r c sq =
+  let m = (11-r, c) in
+  if !chosen_image = "none" then (
+    void_squares := m::(r,c)::(!void_squares);
+    active_squares := List.filter (fun x -> x <> (r,c) && (x <> m))
+      !active_squares;
+    make_void sq;
+    snd m |> get_square (fst m) |> make_void)
+  else (
+    if List.mem (r,c) !active_squares then
+      let s = String.(sub !chosen_image 14 (length !chosen_image - 14)) in
+      let o = get_square (fst m) (snd m) in
+      sq##style##backgroundImage <- (Js.string !chosen_image);
+      o##style##backgroundImage <- (Js.string ("url('images/b_" ^ s)))
+
+(* [play_helper r c e b] is the helper function for handle_square
+ * during the play stage *)
+let play_helper r c sq b =
+  match !chosen_piece with
+  | None ->
+    chosen_piece := Some sq;
+    List.iter (fun a -> (fst a)##style##backgroundColor <- snd a)
+      !highlighted;
+    sq##style##backgroundColor <- (Js.string "#8c8c8c");
+    highlighted := (sq,b)::(!highlighted);
+    highlight_moves r c (get_moves sq);
+  | Some x ->
+    chosen_piece := None;
+    List.iter (fun a -> (fst a)##style##backgroundColor <- snd a)
+      !highlighted;
+    if List.mem (r,c) !active_squares then (
+      let i = x##style##backgroundImage in
+      x##style##backgroundImage <- (Js.string "none");
+      sq##style##backgroundImage <- i)
 
 (* [handle_square r c _] is the callback for a square on the board at row [r]
  * and column [c] *)
 let handle_square r c _ =
   let sq = get_square r c in
-  let m = (11-r, c) in
+  let b = sq##style##backgroundColor in
   begin
     match !current_stage with
     | Start -> ()
-    | Custom_piece ->
-      let d = (r-6,c-6) in
-      let p =
-        begin
-          match d with
-          | (-1,0) | (1,0)  -> get_col 0 c []; "Up"
-          | (0,-1) | (0,1)  -> get_row r 0 []; "Right"
-          | (1,1)  | (-1,-1) ->
-            get_diag ((get_up_diagL r c []) @ (get_d_diagL r c [])); "DiagL"
-          | (-1,1) | (1,-1)  ->
-            get_diag ((get_up_diagR r c []) @ (get_d_diagR r c [])); "DiagR"
-          | _ -> "(" ^ (string_of_int (r-6)) ^ "," ^ (string_of_int (c-6)) ^ ")"
-        end in
-      let b = sq##style##backgroundColor in
-      custom_moves := p::(!custom_moves);
-      highlighted := (sq,b)::(!highlighted);
-      sq##style##backgroundColor <- (Js.string "#ffd456")
-    | Custom_board ->
-      if !chosen_image = "none" then (
-        void_squares := m::(r,c)::(!void_squares);
-        active_squares := List.filter (fun x -> x <> (r,c) && (x <> m))
-          !active_squares;
-        make_void sq;
-        snd m |> get_square (fst m) |> make_void)
-      else (
-        if List.mem (r,c) !active_squares then
-          let s = String.(sub !chosen_image 14 (length !chosen_image - 14)) in
-          let o = get_square (fst m) (snd m) in
-          sq##style##backgroundImage <- (Js.string !chosen_image);
-          o##style##backgroundImage <- (Js.string ("url('images/b_" ^ s)))
-    | Play ->
-      begin
-        match !chosen_piece with
-        | None ->
-          chosen_piece := Some sq;
-          highlight_moves r c (get_moves sq)
-        | Some x ->
-          chosen_piece := None;
-          List.iter (fun a -> (fst a)##style##backgroundColor <- snd a)
-            !highlighted;
-          if List.mem (r,c) !active_squares then (
-            let i = x##style##backgroundImage in
-            x##style##backgroundImage <- (Js.string "none");
-            sq##style##backgroundImage <- i)
-      end
+    | Custom_piece -> piece_helper r c sq b
+    | Custom_board -> board_helper r c sq
+    | Play -> play_helper r c sq b
   end;
   Js._false
 
@@ -282,13 +305,6 @@ let now_playing () =
   (get_button "custom_board")##disabled <- Js._true;
   (get_button "custom_piece")##disabled <- Js._true;
   ()
-
-(* [enable_buttons ()] enables all buttons at the beginning of game setup *)
-let enable_buttons () =
-  (get_button "custom_board")##disabled <- Js._false;
-  (get_button "custom_piece")##disabled <- Js._false;
-  (get_button "play_game")##disabled <- Js._false;
-  Js._false
 
 (* [handle_piece _] is the callback for the customize piece button *)
 let handle_makepiece _ =
