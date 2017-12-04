@@ -1,4 +1,5 @@
 open Yojson
+open Printf
 open Dom
 
 (* shorthand for Dom_html properties and objects *)
@@ -20,36 +21,36 @@ let current_stage = ref Start
 (* [active_squares] is the list of squares on the board that are not void
  * denoted by a pair with row number and column number *)
 let active_squares : ((int * int) list) ref = ref
-  [
-    (0,0);(0,1);(0,2);(0,3);(0,4);(0,5);(0,6);(0,7);(0,8);(0,9);(0,10);(0,11);
-    (1,0);(1,1);(1,2);(1,3);(1,4);(1,5);(1,6);(1,7);(1,8);(1,9);(1,10);(1,11);
-    (2,0);(2,1);(2,2);(2,3);(2,4);(2,5);(2,6);(2,7);(2,8);(2,9);(2,10);(2,11);
-    (3,0);(3,1);(3,2);(3,3);(3,4);(3,5);(3,6);(3,7);(3,8);(3,9);(3,10);(3,11);
-    (4,0);(4,1);(4,2);(4,3);(4,4);(4,5);(4,6);(4,7);(4,8);(4,9);(4,10);(4,11);
-    (5,0);(5,1);(5,2);(5,3);(5,4);(5,5);(5,6);(5,7);(5,8);(5,9);(5,10);(5,11);
-    (6,0);(6,1);(6,2);(6,3);(6,4);(6,5);(6,6);(6,7);(6,8);(6,9);(6,10);(6,11);
-    (7,0);(7,1);(7,2);(7,3);(7,4);(7,5);(7,6);(7,7);(7,8);(7,9);(7,10);(7,11);
-    (8,0);(8,1);(8,2);(8,3);(8,4);(8,5);(8,6);(8,7);(8,8);(8,9);(8,10);(8,11);
-    (9,0);(9,1);(9,2);(9,3);(9,4);(9,5);(9,6);(9,7);(9,8);(9,9);(9,10);(9,11);
-    (10,0);(10,1);(10,2);(10,3);(10,4);(10,5);(10,6);(10,7);(10,8);(10,9);
-    (10,10);(10,11);
-    (11,0);(11,1);(11,2);(11,3);(11,4);(11,5);(11,6);(11,7);(11,8);(11,9);
-    (11,10);(11,11)
-  ]
+    [
+      (0,0);(0,1);(0,2);(0,3);(0,4);(0,5);(0,6);(0,7);(0,8);(0,9);(0,10);(0,11);
+      (1,0);(1,1);(1,2);(1,3);(1,4);(1,5);(1,6);(1,7);(1,8);(1,9);(1,10);(1,11);
+      (2,0);(2,1);(2,2);(2,3);(2,4);(2,5);(2,6);(2,7);(2,8);(2,9);(2,10);(2,11);
+      (3,0);(3,1);(3,2);(3,3);(3,4);(3,5);(3,6);(3,7);(3,8);(3,9);(3,10);(3,11);
+      (4,0);(4,1);(4,2);(4,3);(4,4);(4,5);(4,6);(4,7);(4,8);(4,9);(4,10);(4,11);
+      (5,0);(5,1);(5,2);(5,3);(5,4);(5,5);(5,6);(5,7);(5,8);(5,9);(5,10);(5,11);
+      (6,0);(6,1);(6,2);(6,3);(6,4);(6,5);(6,6);(6,7);(6,8);(6,9);(6,10);(6,11);
+      (7,0);(7,1);(7,2);(7,3);(7,4);(7,5);(7,6);(7,7);(7,8);(7,9);(7,10);(7,11);
+      (8,0);(8,1);(8,2);(8,3);(8,4);(8,5);(8,6);(8,7);(8,8);(8,9);(8,10);(8,11);
+      (9,0);(9,1);(9,2);(9,3);(9,4);(9,5);(9,6);(9,7);(9,8);(9,9);(9,10);(9,11);
+      (10,0);(10,1);(10,2);(10,3);(10,4);(10,5);(10,6);(10,7);(10,8);(10,9);
+      (10,10);(10,11);
+      (11,0);(11,1);(11,2);(11,3);(11,4);(11,5);(11,6);(11,7);(11,8);(11,9);
+      (11,10);(11,11)
+    ]
 
 (* [void_squares] is the list of squares on the board that are void *)
 let void_squares : ((int * int) list) ref = ref []
 
 (* [pic_positions] is the list of possible images for pieces *)
 let pic_positions : (string list) ref = ref
-  ["b_pawn";"w_pawn";"b_rook";"w_rook";"b_knight";"w_knight";
-   "b_bishop";"w_bishop";"b_queen";"w_queen";"b_king";"w_king";
-   "b_custom";"w_custom"]
+    ["b_pawn";"w_pawn";"b_rook";"w_rook";"b_knight";"w_knight";
+     "b_bishop";"w_bishop";"b_queen";"w_queen";"b_king";"w_king";
+     "b_custom";"w_custom"]
 
 (* [custom_moves] is a list of possible movements for the custom piece *)
 let custom_moves : (string list) ref = ref []
 
-(* [custom_squares] is a list of squares from customizing and the initial color *)
+(* [custom_squares] is a list of custom squares and the initial color *)
 let custom_squares : ((Dom_html.element Js.t) * (Js.js_string Js.t)) list ref =
   ref []
 
@@ -95,7 +96,7 @@ let rec get_up_diagL r c l =
     get_up_diagL (r-1) (c-1) ((get_square r c)::l)
   else l
 
-  (* [get_d_diagL r l] is a list of HTML elements in the left down diagonal *)
+(* [get_d_diagL r l] is a list of HTML elements in the left down diagonal *)
 let rec get_d_diagL r c l =
   if r < 12 && c < 12 then
     get_d_diagL (r+1) (c+1) ((get_square r c)::l)
@@ -107,7 +108,7 @@ let rec get_up_diagR r c l =
     get_up_diagR (r-1) (c+1) ((get_square r c)::l)
   else l
 
-  (* [get_d_diagR r l] is a list of HTML elements in the right down diagonal *)
+(* [get_d_diagR r l] is a list of HTML elements in the right down diagonal *)
 let rec get_d_diagR r c l =
   if r < 12 && c >= 0 then
     get_d_diagR (r+1) (c-1) ((get_square r c)::l)
@@ -135,22 +136,22 @@ let handle_square r c _ =
         begin
           match d with
           | (0,-1)  | (0,1)  ->
-            List.map (fun x -> let b' = x##style##backgroundColor in
+            List.iter (fun x -> let b' = x##style##backgroundColor in
             custom_squares := (x,b')::(!custom_squares);
             x##style##backgroundColor <- (Js.string "#ffd456"))
             (get_row r 0 []); "Right"
           | (-1,0)  | (1,0)  ->
-            List.map (fun x -> let b' = x##style##backgroundColor in
+            List.iter (fun x -> let b' = x##style##backgroundColor in
             custom_squares := (x,b')::(!custom_squares);
             x##style##backgroundColor <- (Js.string "#ffd456"))
             (get_col 0 c []); "Up"
           | (1,1)  | (-1,-1) ->
-            List.map (fun x -> let b' = x##style##backgroundColor in
+            List.iter (fun x -> let b' = x##style##backgroundColor in
             custom_squares := (x,b')::(!custom_squares);
             x##style##backgroundColor <- (Js.string "#ffd456"))
             ((get_up_diagL r c [])@(get_d_diagL r c [])); "DiagL"
           | (-1,1) | (1,-1)  ->
-            List.map (fun x -> let b' = x##style##backgroundColor in
+            List.iter (fun x -> let b' = x##style##backgroundColor in
             custom_squares := (x,b')::(!custom_squares);
             x##style##backgroundColor <- (Js.string "#ffd456"))
             ((get_up_diagR r c [])@(get_d_diagR r c [])); "DiagR"
@@ -164,7 +165,7 @@ let handle_square r c _ =
       if !chosen_image = "none" then (
         void_squares := m::(r,c)::(!void_squares);
         active_squares := List.filter (fun x -> x <> (r,c) && (x <> m))
-          !active_squares;
+            !active_squares;
         make_void sq;
         snd m |> get_square (fst m) |> make_void)
       else (
@@ -200,8 +201,8 @@ let handle_pic h e _ =
     match !current_stage with
     | Custom_board ->
       (if !chosen_image <> "none" then (
-        let n = String.(sub !chosen_image 12 (length !chosen_image - 18)) in
-        (get_element n)##style##backgroundColor <- (Js.string "transparent")));
+          let n = String.(sub !chosen_image 12 (length !chosen_image - 18)) in
+          (get_element n)##style##backgroundColor <- (Js.string "transparent")));
       chosen_image := "url('images/" ^ h ^ ".png')";
       e##style##backgroundColor <- (Js.string "#2d5475");
     | _ -> ()
@@ -250,11 +251,36 @@ let handle_makeboard _ =
   squares into voids, and finally move pieces on to the board.");
   Js._false
 
+(* [create_json ()] creates a JSON file for the
+ * initial state of the game using the list of active squares [squares],
+ * the initial position of pieces [pieces], and the movement pattern of the
+ * customized piece [custom] *)
+let create_json () =
+  let file = "custom.json" in
+  let conc x y = x ^ ",\"(" ^ (y |> fst |> string_of_int) ^
+                 "," ^ (y |> snd |> string_of_int) ^ ")\"" in
+  let void = List.fold_left conc "" !void_squares in
+  let missing = "{\"missing\":[" ^ String.(sub void 1 (length void - 1)) in
+  let original =  "],\"pieces\": [{\"name\": \"Rook\",\"pattern\": [ \"Up\","^
+                  "\"Right\" ]\n  },{\"name\": \"Knight\",\"pattern\": [ \"(1,2)\", "^
+                  "\"(-1,2)\", \"(-2,1)\", \"(-2,-1)\",\n  \"(1,-2)\", \"(-1,-2)\", "^
+                  "\"(2,1)\", \"(2,-1)\" ]},{\"name\": \"Bishop\",\n  \"pattern\": ["^
+                  " \"DiagL\", \"DiagR\" ]},{\"name\":\"Queen\",\n  \"pattern\": [ "^
+                  "\"DiagL\", \"DiagR\", \"Up\", \"Right\" ]},{\"name\": \"King\",\n "^
+                  " \"pattern\": [ \"King\" ]},{\"name\": \"Pawn\",\"pattern\": [ \"Pawn\" ]"
+  in
+  let custom = "},{" in
+  let json = missing ^ original ^ custom in
+  let ochannel = open_out file in
+  fprintf ochannel "%s\n" json;
+  close_out ochannel
+
 (* [handle_play _] is the callback for the start game button *)
 let handle_play _ =
   current_stage := Play;
   chosen_image := "none";
   now_playing ();
+  create_json ();
   window##alert (Js.string "Start playing! You will not be able to customize
   the board or pieces further.");
   Js._false
@@ -267,12 +293,13 @@ let onload _ =
   pic_callbacks !pic_positions;
   Js._false
 
-(* [create_json squares pieces custom] creates a JSON file for the
- * initial state of the game using the list of active squares [squares],
- * the initial position of pieces [pieces], and the movement pattern of the
- * customized piece [custom] *)
-let create_json () =
-  failwith "Unimpl"
-
 let _ =
   window##onload <- (handler onload)
+
+let _ =
+  let file = "example.json" in
+  let message = "Hello!" in
+  (* Write message to file *)
+  let oc = open_out file in    (* create or truncate file, return channel *)
+  fprintf oc "%s\n" message;   (* write something *)
+  close_out oc              (* flush and close the channel *)
