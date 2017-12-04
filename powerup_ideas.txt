@@ -7,7 +7,16 @@ General Requirements:
 -Kings may not receive power-ups. A king may land on that space, but they will not receive the power-up. The power-up will still remain valid.
 
 
-***Raise the Dead***
+can’t create a second king
+can’t kill king
+king can use powerup
+powerup can put king in checkmate
+delete the powerup
+ask alan if each time the state is sucessfully changed
+
+
+
+***Raise the Dead*** (pow0)
 Description:
 -“Bring back” three pawns in front of you if there exists three valid spaces that are one space in front, one space to the top left, and one space to the top right. Does NOT require three captured pawns.
 
@@ -21,7 +30,7 @@ Implementation:
 *********************
 
 
-***Elimination***
+***Elimination*** (pow1)
 Description:
 -Eliminates a whole column of pieces.
 
@@ -36,7 +45,7 @@ Implementation:
 *********************
 
 
-***No Jumpers***
+***No Jumpers*** (pow2)
 Description:
 -Takes all of the jumpers off of the board.
 
@@ -49,7 +58,7 @@ Implementation:
 *********************
 
 
-***Second Chance***
+***Second Chance*** (pow3)
 Description:
 -Pick any piece to revive.
 
@@ -64,7 +73,7 @@ Implementation:
 *********************
 
 
-***Clone***
+***Clone*** (pow4)
 Description:
 -Make a copy of a piece on the board.
 
@@ -79,7 +88,7 @@ Implementation:
 *********************
 
 
-***Mind Control***
+***Mind Control*** (pow5)
 Description:
 -Steal a piece from the other player.
 
@@ -94,7 +103,7 @@ Implementation:
 *********************
 
 
-***Cult Murder***
+***Cult Murder*** (pow6)
 Description:
 -Kill every one in the ‘nearby circle’, which is defined to be 8-spaces next to the power-up.
 
