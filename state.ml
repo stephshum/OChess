@@ -86,7 +86,19 @@ let init_state j =
     else if s = "Black" then Some Black
     else Some White
   in
-  let powerup_used =
+  let powerup_used1 =
+    let num = Random.int 6 in
+    match num with
+    | 0 -> RaisetheDead
+    | 1 -> Elimination
+    | 2 -> NoJumpers
+    | 3 -> SecondChance
+    | 4 -> Clone
+    | 5 -> MindControl
+    | 6 -> CultMurder
+    | _ -> failwith "oops"
+  in
+  let powerup_used2 =
     let num = Random.int 6 in
     match num with
     | 0 -> RaisetheDead
@@ -111,7 +123,8 @@ let init_state j =
     score = j |> member "score" |> int_tuple_of_json;
     wking = j |> member "wking" |> int_tuple_of_json;
     bking = j |> member "bking" |> int_tuple_of_json;
-    powvalid = [((5,2), powerup_used); ((6,9), powerup_used)]; (*TODO rewrite this*)
+    powvalid = [((4,1), powerup_used1); ((7,1), powerup_used1);
+                ((7,10), powerup_used2); ((4,10), powerup_used2) ]; (*TODO rewrite this*)
     check = j |> member "check" |> check_of_json;
     checkmate = j |> member "promote" |> checkmate_of_json
   }
@@ -438,8 +451,8 @@ let do' cmd st =
   (*Second Chance
     changes
     same line as piece
-    random piece*)
-  (* let pow3 st =
+    random piece if ther randomly selected spot fits the criteria*)
+  let pow3 (x, y) st =
      if st.color = White then
       let my_pieces = List.filter (fun x -> (x.pcolor = White)) st.captured in
       let my_array = Array.of_list my_pieces in
@@ -452,11 +465,31 @@ let do' cmd st =
         | [] -> acc
       in
       let new_cap = rem st.captured [] chosen in
-      let new_
-
-  *)
-
-
+      let ran_spot = Random.int 11 in
+      if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
+         (List.mem (x, ran_spot) st.missing) then
+        st
+      else
+        {st with pc_loc = ((x, ran_spot), chosen)::(st.pc_loc)}
+     else
+       let my_pieces = List.filter (fun x -> (x.pcolor = Black)) st.captured in
+       let my_array = Array.of_list my_pieces in
+       let my_len = Array.length my_array in
+       let ran = Random.int (my_len - 1) in
+       let chosen = Array.get my_array ran in
+       let rec rem lst acc a =
+         match lst with
+         | x::xs -> if x = a then acc@xs else rem xs (x::acc) a
+         | [] -> acc
+       in
+       let new_cap = rem st.captured [] chosen in
+       let ran_spot = Random.int 11 in
+       if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
+          (List.mem (x, ran_spot) st.missing) then
+         st
+       else
+         {st with pc_loc = ((x, ran_spot), chosen)::(st.pc_loc)}
+  in
   (* CultMurder*)
   let pow6 (x, y) st =
     let surrounding = [(x,y);(x-1,y+1); (x+1,y-1);
