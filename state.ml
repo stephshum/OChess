@@ -382,6 +382,31 @@ let do' cmd st =
   let check_for_power (xf, yf) st =
     List.assoc_opt (xf, yf) st.powvalid
   in
+  (*Raise the Dead*)
+  let pow0 (x,y) st =
+    if (st.color = White) then
+      let poten = [(x,y+1); (x+1, y+1); (x-1, y+1)] in
+      let predic p = List.mem p st.missing in
+      let two_list = List.partition predic poten in
+      let (_, not_void) = two_list in
+      let jus_pos = List.map fst st.pc_loc in
+      let predic2 p = List.mem p jus_pos in
+      let two_list2 = List.partition predic2 not_void in
+      let (_, valid) = two_list2 in
+      let new_pawns = List.map (fun x -> (x, {name = Pawn true; pcolor = White})) valid in
+      {st with pc_loc = new_pawns}
+    else
+      let poten = [(x,y-1); (x+1, y-1); (x-1, y-1)] in
+      let predic p = List.mem p st.missing in
+      let two_list = List.partition predic poten in
+      let (_, not_void) = two_list in
+      let jus_pos = List.map fst st.pc_loc in
+      let predic2 p = List.mem p jus_pos in
+      let two_list2 = List.partition predic2 not_void in
+      let (_, valid) = two_list2 in
+      let new_pawns = List.map (fun x -> (x, {name = Pawn true; pcolor = Black})) valid in
+      {st with pc_loc = new_pawns}
+  in
   (* Elimination*)
   let pow1 (x, y) st =
     let predic p = (snd (fst p) = y) in
