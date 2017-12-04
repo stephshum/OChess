@@ -104,8 +104,7 @@ let rec get_row r c (l : Dom_html.element Js.t list) =
   if List.length l = 12 then (
     List.iter (fun x -> let b' = x##style##backgroundColor in
     highlighted := (x,b')::(!highlighted);
-    if Js.to_string (x##style##backgroundImage) = "none" then
-      x##style##backgroundColor <- (Js.string "#ffd456")) l)
+    x##style##backgroundColor <- (Js.string "#ffd456")) l)
   else (
     get_row r (c+1) ((get_square r c)::l))
 
@@ -114,8 +113,7 @@ let rec get_col r c (l : Dom_html.element Js.t list) =
   if List.length l = 12 then (
     List.iter (fun x -> let b' = x##style##backgroundColor in
     highlighted := (x,b')::(!highlighted);
-    if Js.to_string (x##style##backgroundImage) = "none" then
-      x##style##backgroundColor <- (Js.string "#ffd456")) l)
+    x##style##backgroundColor <- (Js.string "#ffd456")) l)
   else (
     get_col (r+1) c ((get_square r c)::l))
 
@@ -147,8 +145,7 @@ let rec get_d_diagR r c l =
 let get_diag l =
   List.iter (fun x -> let b' = x##style##backgroundColor in
   highlighted := (x,b')::(!highlighted);
-  if Js.to_string (x##style##backgroundImage) = "none" then
-    x##style##backgroundColor <- (Js.string "#ffd456")) l
+  x##style##backgroundColor <- (Js.string "#ffd456")) l
 
 (* [get_image u] is the name of the image with url [u] *)
 let get_image u =
@@ -183,8 +180,7 @@ let highlight_one r c m =
     let c' = String.(sub x (com+1) (length x - com - 2)) |> int_of_string in
     let e = get_square (r+r') (c+c') in
     highlighted := (e,e##style##backgroundColor)::!highlighted;
-    if Js.to_string (e##style##backgroundImage) = "none" then
-      e##style##backgroundColor <- (Js.string "#ffd456")
+    e##style##backgroundColor <- (Js.string "#ffd456")
 
 (* [highlight_moves r c] highlights squares the piece at ([r],[c]) can move to
  * to yellow with move list [m] *)
@@ -380,3 +376,6 @@ let onload _ =
   square_callbacks !active_squares;
   pic_callbacks !pic_positions;
   Js._false
+
+let _ =
+  window##onload <- handler onload
