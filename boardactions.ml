@@ -1,7 +1,9 @@
-open Yojson.Basic.Util
+open Yojson
 open Printf
 open Dom
 open Command
+open State
+open Models
 
 (* shorthand for Dom_html properties and objects *)
 let window = Dom_html.window
@@ -17,7 +19,23 @@ type stage = Custom_piece | Custom_board | Play | Start
 let current_stage = ref Start
 
 (* [current_state] is the current state of the board game *)
-(* let current_state = ref state *)
+let current_state : State.state ref = ref {
+  missing = [];
+  pieces = [];
+  pc_loc = [];
+  captured = [];
+  color = White;
+  promote = None;
+  trow = 0;
+  brow = 0;
+  turn = 0;
+  score = (0,0); (* left is White score, right is Black score *)
+  wking = (0,0);
+  bking = (0,0);
+  powvalid = [];
+  check = None;
+  checkmate = None
+}
 
 (* [active_squares] is the list of squares on the board that are not void
  * denoted by a pair with row number and column number *)
@@ -51,8 +69,8 @@ let pic_positions : (string list) ref = ref
 (* [custom_moves] is a list of possible movements for the custom piece *)
 let custom_moves : (string list) ref = ref []
 
-(* [custom_squares] is a list of custom squares and the initial color *)
-let custom_squares : ((Dom_html.element Js.t) * (Js.js_string Js.t)) list ref =
+(* [highlighted] is a list of highlighted squares and their initial colors *)
+let highlighted : ((Dom_html.element Js.t) * (Js.js_string Js.t)) list ref =
   ref []
 
 (* [init_pieces] is a list of the pieces placed on the board before a
@@ -83,13 +101,23 @@ let get_square r c =
 
 (* [get_row r l] is a list of HTML elements in row [r] *)
 let rec get_row r c (l : Dom_html.element Js.t list) =
-  if List.length l = 12 then l
-  else get_row r (c+1) ((get_square r c)::l)
+  if List.length l = 12 then (
+    List.iter (fun x -> let b' = x##style##backgroundColor in
+    highlighted := (x,b')::(!highlighted);
+    if Js.to_string (x##style##backgroundImage) = "none" then
+      x##style##backgroundColor <- (Js.string "#ffd456")) l)
+  else (
+    get_row r (c+1) ((get_square r c)::l))
 
 (* [get_col r l] is a list of HTML elements in column [c] *)
 let rec get_col r c (l : Dom_html.element Js.t list) =
-  if List.length l = 12 then l
-  else get_col (r+1) c ((get_square r c)::l)
+  if List.length l = 12 then (
+    List.iter (fun x -> let b' = x##style##backgroundColor in
+    highlighted := (x,b')::(!highlighted);
+    if Js.to_string (x##style##backgroundImage) = "none" then
+      x##style##backgroundColor <- (Js.string "#ffd456")) l)
+  else (
+    get_col (r+1) c ((get_square r c)::l))
 
 (* [get_up_diagL r l] is a list of HTML elements in the left up diagonal *)
 let rec get_up_diagL r c l =
@@ -115,13 +143,56 @@ let rec get_d_diagR r c l =
     get_d_diagR (r+1) (c-1) ((get_square r c)::l)
   else l
 
+(* [get_diag l] highlights the squares in [l] *)
+let get_diag l =
+  List.iter (fun x -> let b' = x##style##backgroundColor in
+  highlighted := (x,b')::(!highlighted);
+  if Js.to_string (x##style##backgroundImage) = "none" then
+    x##style##backgroundColor <- (Js.string "#ffd456")) l
+
 (* [get_image u] is the name of the image with url [u] *)
 let get_image u =
-  String.(sub !chosen_image 12 (length !chosen_image - 18))
+  String.(sub u 12 (length u - 18))
 
 (* [make_void e] makes the square for element [e] a void color *)
 let make_void e =
   e##style##backgroundColor <- (Js.string "transparent")
+
+(* [get_moves e] is the list of moves a piece at HTML element [e] can make *)
+let get_moves e =
+  let i = e##style##backgroundImage |> Js.to_string |> get_image in
+  match i with
+  | "w_pawn" -> ["Pawn"]
+  | "w_rook" -> ["Up"; "Right"]
+  | "w_knight" -> ["(1,2)";"(-1,2)";"(-2,1)";"(-2,-1)";"(1,-2)";
+    "(-1,-2)";"(2,1)";"(2,-1)"]
+  | "w_bishop" -> ["DiagL";"DiagR"]
+  | "w_queen" -> ["DiagL";"DiagR";"Up";"Right"]
+  | "w_king" -> ["King"]
+  | _ -> !custom_moves
+
+(* [highlight_one m] highlights squares corresponding to move [m] *)
+let highlight_one r c m =
+  match m with
+  | "Up" -> get_col 0 c []
+  | "Right" -> get_row r 0 []
+  | "DiagL" -> get_diag ((get_up_diagL r c []) @ (get_d_diagL r c []))
+  | "DiagR" -> get_diag ((get_up_diagR r c []) @ (get_d_diagR r c []))
+  | x -> let com = String.index x ',' in
+    let r' = String.(sub x 1 (com-1)) |> int_of_string in
+    let c' = String.(sub x (com+1) (length x - com - 2)) |> int_of_string in
+    let e = get_square (r+r') (c+c') in
+    highlighted := (e,e##style##backgroundColor)::!highlighted;
+    if Js.to_string (e##style##backgroundImage) = "none" then
+      e##style##backgroundColor <- (Js.string "#ffd456")
+
+(* [highlight_moves r c] highlights squares the piece at ([r],[c]) can move to
+ * to yellow with move list [m] *)
+let rec highlight_moves r c m =
+  if m <> ["King"] && m <> ["Pawn"] then
+    match m with
+    | [] -> ()
+    | h::t -> (highlight_one r c h); highlight_moves r c t
 
 (* [handle_square r c _] is the callback for a square on the board at row [r]
  * and column [c] *)
@@ -136,37 +207,23 @@ let handle_square r c _ =
       let p =
         begin
           match d with
-          | (0,-1)  | (0,1)  ->
-            List.iter (fun x -> let b' = x##style##backgroundColor in
-            custom_squares := (x,b')::(!custom_squares);
-            x##style##backgroundColor <- (Js.string "#ffd456"))
-            (get_row r 0 []); "Right"
-          | (-1,0)  | (1,0)  ->
-            List.iter (fun x -> let b' = x##style##backgroundColor in
-            custom_squares := (x,b')::(!custom_squares);
-            x##style##backgroundColor <- (Js.string "#ffd456"))
-            (get_col 0 c []); "Up"
+          | (-1,0) | (1,0)  -> get_col 0 c []; "Up"
+          | (0,-1) | (0,1)  -> get_row r 0 []; "Right"
           | (1,1)  | (-1,-1) ->
-            List.iter (fun x -> let b' = x##style##backgroundColor in
-            custom_squares := (x,b')::(!custom_squares);
-            x##style##backgroundColor <- (Js.string "#ffd456"))
-            ((get_up_diagL r c [])@(get_d_diagL r c [])); "DiagL"
+            get_diag ((get_up_diagL r c []) @ (get_d_diagL r c [])); "DiagL"
           | (-1,1) | (1,-1)  ->
-            List.iter (fun x -> let b' = x##style##backgroundColor in
-            custom_squares := (x,b')::(!custom_squares);
-            x##style##backgroundColor <- (Js.string "#ffd456"))
-            ((get_up_diagR r c [])@(get_d_diagR r c [])); "DiagR"
+            get_diag ((get_up_diagR r c []) @ (get_d_diagR r c [])); "DiagR"
           | _ -> "(" ^ (string_of_int (r-6)) ^ "," ^ (string_of_int (c-6)) ^ ")"
         end in
       let b = sq##style##backgroundColor in
       custom_moves := p::(!custom_moves);
-      custom_squares := (sq,b)::(!custom_squares);
+      highlighted := (sq,b)::(!highlighted);
       sq##style##backgroundColor <- (Js.string "#ffd456")
     | Custom_board ->
       if !chosen_image = "none" then (
         void_squares := m::(r,c)::(!void_squares);
         active_squares := List.filter (fun x -> x <> (r,c) && (x <> m))
-            !active_squares;
+          !active_squares;
         make_void sq;
         snd m |> get_square (fst m) |> make_void)
       else (
@@ -178,12 +235,17 @@ let handle_square r c _ =
     | Play ->
       begin
         match !chosen_piece with
-        | None -> chosen_piece := Some sq
+        | None ->
+          chosen_piece := Some sq;
+          highlight_moves r c (get_moves sq)
         | Some x ->
-          let i = x##style##backgroundImage in
-          sq##style##backgroundImage <- i;
-          x##style##backgroundImage <- (Js.string "none");
-          chosen_piece := None
+          chosen_piece := None;
+          List.iter (fun a -> (fst a)##style##backgroundColor <- snd a)
+            !highlighted;
+          if List.mem (r,c) !active_squares then (
+            let i = x##style##backgroundImage in
+            x##style##backgroundImage <- (Js.string "none");
+            sq##style##backgroundImage <- i)
       end
   end;
   Js._false
@@ -247,7 +309,8 @@ let handle_makeboard _ =
   chosen_image := "none";
   let c = get_square 6 6 in
   c##style##backgroundImage <- (Js.string "none");
-  List.map (fun x -> (fst x)##style##backgroundColor <- snd x) !custom_squares;
+  List.iter (fun x -> (fst x)##style##backgroundColor <- snd x) !highlighted;
+  highlighted := [];
   window##alert (Js.string "You are now customizing your board. Click to turn
   squares into voids, and finally move pieces on to the board.");
   Js._false
@@ -258,15 +321,15 @@ let rec pieces_string x s =
     match x with
     | [] -> s
     | (n,(r,c))::t ->
-      let p = if String.get n t = 'b' then "Black" else "White" in
+      let p = if String.get n 0 = 'b' then "Black" else "White" in
       let w = get_image n in
       let x = String.(length w - 2 |> sub w 2 |> capitalize_ascii) in
-      pieces_string t (s^"{\"piece\":{\"name\":\"" ^x^ "\",\"color\":\"" ^p^
-      "\"},\"position\":\"(" (string_of_int r) ^","^ (string_of_int c)^
+      pieces_string t (s^"{\"piece\":{\"name\":\"" ^ x ^ "\",\"color\":\"" ^ p ^
+      "\"},\"position\":\"(" ^ (string_of_int r) ^ "," ^ (string_of_int c) ^
       ")\"},")
   end
 
-(* [create_json ()] creates a JSON file for the initial state of the game *)
+(* [create_json ()] creates a JSON string for the initial state of the game *)
 let create_json () =
   let void x y = x ^ ",\"(" ^ (y |> fst |> string_of_int) ^
                  "," ^ (y |> snd |> string_of_int) ^ ")\"" in
@@ -287,8 +350,8 @@ let create_json () =
   let e = String.(sub e' 0 (length e' - 1)) in
   let f = "],\n  \"captured\": [],\n  \"color\": \"White\",\"" in
   let g = "\"trow\":" ^ List.(hd !active_squares |> fst |> string_of_int)^"," in
-  let h = "\"brow\":" ^ List.(!active_squares |> length - 1 |> nth |> snd |>
-    string_of_int) ^ "," in
+  let h = "\"brow\":" ^ List.(length !active_squares - 1 |> nth !active_squares
+    |> snd |> string_of_int) ^ "," in
   let i = "\"promote\": \"None\",\"turn\": 1,\"score\": \"(0,0)\"," in
   let j' = List.assoc "url('images/w_king.png')" !init_pieces in
   let j = "\"wking\":\"(" ^ (string_of_int (fst j')) ^ "," ^
@@ -297,17 +360,15 @@ let create_json () =
   let k = "\"bking\":\"(" ^ (string_of_int (fst k')) ^ "," ^
     (string_of_int (snd k')) ^ ")\"," in
   let l = " \"check\": \"None\", \"checkmate\": \"None\"}" in
-  let json = a^b^c^e^f^g^h^i^j^k in
-  let ochannel = open_out "custom.json" in
-  fprintf ochannel "%s\n" json;
-  close_out ochannel
+  let json = a^b^c^d^e^f^g^h^i^j^k^l in
+  Yojson.Basic.from_string json
 
 (* [handle_play _] is the callback for the start game button *)
 let handle_play _ =
   current_stage := Play;
   chosen_image := "none";
   now_playing ();
-  create_json ();
+  current_state := State.init_state (create_json ());
   window##alert (Js.string "Start playing! You will not be able to customize
   the board or pieces further.");
   Js._false
@@ -319,14 +380,3 @@ let onload _ =
   square_callbacks !active_squares;
   pic_callbacks !pic_positions;
   Js._false
-
-let _ =
-  window##onload <- (handler onload)
-
-let _ =
-  let file = "example.json" in
-  let message = "Hello!" in
-  (* Write message to file *)
-  let oc = open_out file in    (* create or truncate file, return channel *)
-  fprintf oc "%s\n" message;   (* write something *)
-  close_out oc              (* flush and close the channel *)
