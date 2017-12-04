@@ -415,7 +415,8 @@ let do' cmd st =
   in
   (* Elimination*)
   let pow1 (x, y) st =
-    let predic p = (snd (fst p) = y) in
+    let predic p = (snd (fst p) = y && (snd p).name <> King true
+                    && (snd p).name <> King false) in
     let two_list = List.partition predic st.pc_loc in
     let (captured, updated) = two_list in
     let only_pieces = List.map snd captured in
@@ -475,7 +476,9 @@ let do' cmd st =
   (*clone*)
   let pow4 (x,y) st =
     let higherpow c =
-      let my_pieces = List.filter (fun x -> let p = snd x in (p.pcolor = c)) st.pc_loc in
+      let my_pieces = List.filter (fun x ->
+          let p = snd x in (p.pcolor = c) && p.name <> King true
+                           && p.name <> King false) st.pc_loc in
       let my_array = Array.of_list my_pieces in
       let my_len = Array.length my_array in
       let ran = Random.int (my_len - 1) in
@@ -494,7 +497,9 @@ let do' cmd st =
   in
   let pow5 (x,y) st =
     let higherpow nc =
-        let my_pieces = List.filter (fun x -> let p = snd x in (p.pcolor = nc)) st.pc_loc in
+      let my_pieces = List.filter (fun x ->
+          let p = snd x in (p.pcolor = nc) && p.name <> King true
+                           && p.name <> King false) st.pc_loc in
         let my_array = Array.of_list my_pieces in
         let my_len = Array.length my_array in
         let ran = Random.int (my_len - 1) in
@@ -513,9 +518,15 @@ let do' cmd st =
   in
   (* CultMurder*)
   let pow6 (x, y) st =
-    let surrounding = [(x,y);(x-1,y+1); (x+1,y-1);
-                       (x+1,y);(x,y+1);(x+1,y+1);
-                       (x-1,y);(x,y-1);(x-1,y-1)] in
+    let surrounding_tent = [(x-1,y+1); (x+1,y-1);
+                            (x+1,y);(x,y+1);(x+1,y+1);
+                            (x-1,y);(x,y-1);(x-1,y-1)] in
+    let surrounding =
+      if (st.wking =(x, y) || st.bking=(x, y)) then
+        surrounding_tent
+      else
+        (x,y)::surrounding_tent
+    in
     let predic p = List.mem (fst p) surrounding in
     let two_list = List.partition predic st.pc_loc in
     let (captured, updated) = two_list in
@@ -527,20 +538,20 @@ let do' cmd st =
      * [pow] is [None],st will remain the same
      * *)
   in
-  (* let use_power loc pow st =
+  let use_power loc pow st =
      match pow with
      | Some x -> begin
         match x with
         | RaisetheDead -> pow0 loc st
         | Elimination -> pow1 loc st
-        | NoJumpers -> pow2 loc st
+        | NoJumpers -> pow2 st
         | SecondChance -> pow3 loc st
         | Clone -> pow4 loc st
         | MindControl -> pow5 loc st
         | CultMurder -> pow6 loc st
      end
      | None -> st
-     in *)
+     in
   let mv (xi,yi) (xf,yf) =
     let pc = List.assoc (xi,yi) st.pc_loc in
     let ncolor = if st.color = Black then White else Black in
@@ -666,11 +677,9 @@ let do' cmd st =
         let st' = if (pc.name = King true || pc.name = King false)
                   && st.color = Black then
             {pre_st with bking = (xf,yf)}
-            (* color_in_checkmate truth st' *)
           else if (pc.name = King true || pc.name = King false)
                && st.color = White then
             {pre_st with wking = (xf,yf)}
-            (* color_in_checkmate truth st' *)
           else
             (*TODO->*)
             pre_st     (*<-TODO*)
