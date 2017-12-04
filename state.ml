@@ -123,8 +123,8 @@ let init_state j =
     score = j |> member "score" |> int_tuple_of_json;
     wking = j |> member "wking" |> int_tuple_of_json;
     bking = j |> member "bking" |> int_tuple_of_json;
-    powvalid = [((4,1), powerup_used1); ((7,1), powerup_used1);
-                ((7,10), powerup_used2); ((4,10), powerup_used2) ]; (*TODO rewrite this*)
+    powvalid = [((1,4), powerup_used1); ((1,7), powerup_used1);
+                ((10,7), powerup_used2); ((10,4), powerup_used2) ]; (*TODO rewrite this*)
     check = j |> member "check" |> check_of_json;
     checkmate = j |> member "promote" |> checkmate_of_json
   }
@@ -409,9 +409,9 @@ let do' cmd st =
       {st with pc_loc = new_pawns}
     in
     if (st.color = White) then
-      higherpow [(x,y+1); (x+1, y+1); (x-1, y+1)] White
+      higherpow [(x,y-1); (x+1, y-1); (x-1, y-1)] White
     else
-      higherpow [(x,y-1); (x+1, y-1); (x-1, y-1)] Black
+      higherpow [(x,y+1); (x+1, y+1); (x-1, y+1)] Black
   in
   (* Elimination*)
   let pow1 (x, y) st =
@@ -542,13 +542,13 @@ let do' cmd st =
      match pow with
      | Some x -> begin
         match x with
-        | RaisetheDead -> pow0 loc st
-        | Elimination -> pow1 loc st
-        | NoJumpers -> pow2 st
-        | SecondChance -> pow3 loc st
-        | Clone -> pow4 loc st
-        | MindControl -> pow5 loc st
-        | CultMurder -> pow6 loc st
+        | RaisetheDead -> print_int 0; pow0 loc st
+        | Elimination -> print_int 1;pow1 loc st
+        | NoJumpers -> print_int 2;pow2 st
+        | SecondChance -> print_int 3;pow3 loc st
+        | Clone -> print_int 4;pow4 loc st
+        | MindControl -> print_int 5;pow5 loc st
+        | CultMurder -> print_int 6;pow6 loc st
      end
      | None -> st
      in
