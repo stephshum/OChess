@@ -490,6 +490,33 @@ let do' cmd st =
        else
          {st with pc_loc = ((x, ran_spot), chosen)::(st.pc_loc)}
   in
+  (*clone*)
+  let pow4 (x,y) st =
+    if st.color = White then
+      let my_pieces = List.filter (fun x -> let p = snd x in (p.pcolor = White)) st.pc_loc in
+      let my_array = Array.of_list my_pieces in
+      let my_len = Array.length my_array in
+      let ran = Random.int (my_len - 1) in
+      let chosen = Array.get my_array ran in
+      let ran_spot = Random.int 11 in
+      if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
+         (List.mem (x, ran_spot) st.missing) then
+        st
+      else
+        {st with pc_loc = ((x, ran_spot), snd chosen)::(st.pc_loc)}
+    else
+      let my_pieces = List.filter (fun x -> let p = snd x in (p.pcolor = Black)) st.pc_loc in
+      let my_array = Array.of_list my_pieces in
+      let my_len = Array.length my_array in
+      let ran = Random.int (my_len - 1) in
+      let chosen = Array.get my_array ran in
+      let ran_spot = Random.int 11 in
+      if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
+         (List.mem (x, ran_spot) st.missing) then
+        st
+      else
+        {st with pc_loc = ((x, ran_spot), snd chosen)::(st.pc_loc)}
+  in
   (* CultMurder*)
   let pow6 (x, y) st =
     let surrounding = [(x,y);(x-1,y+1); (x+1,y-1);
