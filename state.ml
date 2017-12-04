@@ -290,7 +290,6 @@ let val_move_lst (x,y) st =
     else false
   in
   let king_move castle =
-    (*TODO*)
     let basic_mov = ([] |> check_pos (x-1,y) |>
                      check_pos (x-1,y+1) |>
                      check_pos (x-1,y-1) |>
@@ -299,7 +298,7 @@ let val_move_lst (x,y) st =
                      check_pos (x+1,y-1) |>
                      check_pos (x+1,y+1) |>
                      check_pos (x+1,y))
-    in (*TODO*)
+    in
     if castle = false then
       val_lst basic_mov
     else
@@ -436,6 +435,28 @@ let do' cmd st =
     {st with pc_loc = updated;
              captured = only_pieces@st.captured}
   in
+  (*Second Chance
+    changes
+    same line as piece
+    random piece*)
+  (* let pow3 st =
+     if st.color = White then
+      let my_pieces = List.filter (fun x -> (x.pcolor = White)) st.captured in
+      let my_array = Array.of_list my_pieces in
+      let my_len = Array.length my_array in
+      let ran = Random.int (my_len - 1) in
+      let chosen = Array.get my_array ran in
+      let rec rem lst acc a =
+        match lst with
+        | x::xs -> if x = a then acc@xs else rem xs (x::acc) a
+        | [] -> acc
+      in
+      let new_cap = rem st.captured [] chosen in
+      let new_
+
+  *)
+
+
   (* CultMurder*)
   let pow6 (x, y) st =
     let surrounding = [(x,y);(x-1,y+1); (x+1,y-1);
@@ -500,47 +521,26 @@ let do' cmd st =
         let cap_lst = cap::st.captured in
         let kloc = if ncolor = Black then st.bking else st.wking in
         let truth  = in_check st.missing st.pieces pc_lst ncolor kloc in
-        if (pc.name = King true || pc.name = King false) &&
-           st.color = Black then
-          let st' =
-            {st with pc_loc = pc_lst;
-                     captured = cap_lst;
-                     color = ncolor;
-                     promote = None;
-                     turn = st.turn + 1;
-                     score = update_score cap st.score;
-                     bking = (xf,yf);
-                     check = color_in_check ncolor truth;
-                     checkmate = None
-            }
-          in
-          color_in_checkmate truth st'
-        else if (pc.name = King true || pc.name = King false)
-             && st.color = White then
-          let st' = {st with pc_loc = pc_lst;
-                             captured = cap_lst;
-                             color = ncolor;
-                             promote = None;
-                             turn = st.turn + 1;
-                             score = update_score cap st.score;
-                             wking = (xf,yf);
-                             check = color_in_check ncolor truth;
-                             checkmate = None
-                    }
-          in
-          color_in_checkmate truth st'
-        else
-          let st' = {st with pc_loc = pc_lst;
-                             captured = cap_lst;
-                             color = ncolor;
-                             promote = None;
-                             turn = st.turn + 1;
-                             score = update_score cap st.score;
-                             check = color_in_check ncolor truth;
-                             checkmate = None
-                    }
-          in
-          color_in_checkmate truth st'
+        let pre_state = {st with pc_loc = pc_lst;
+                                 captured = cap_lst;
+                                 color = ncolor;
+                                 promote = None;
+                                 turn = st.turn + 1;
+                                 score = update_score cap st.score;
+                                 check = color_in_check ncolor truth;
+                                 checkmate = None
+                        }
+        in
+        let st' =
+          if (pc.name = King true || pc.name = King false) &&
+             st.color = Black then
+            {st with bking = (xf,yf)}
+          else if (pc.name = King true || pc.name = King false)
+               && st.color = White then
+            {st with wking = (xf,yf)}
+          else
+            pre_state
+        in color_in_checkmate truth st'
       else
         let pc_lst =
           match pc.name with
@@ -601,42 +601,27 @@ let do' cmd st =
         in
         let kloc = if ncolor = Black then st.bking else st.wking in
         let truth  = in_check st.missing st.pieces pc_lst ncolor kloc in
-        if (pc.name = King true || pc.name = King false)
-        && st.color = Black then
-          let st' = {st with pc_loc = pc_lst;
-                             color = ncolor;
-                             promote = None;
-                             turn = st.turn + 1;
-                             bking = (xf,yf);
-                             check = color_in_check ncolor truth;
-                             checkmate = None
-                    }
-          in
-          color_in_checkmate truth st'
-        else if (pc.name = King true || pc.name = King false)
-             && st.color = White then
-          let st' = {st with pc_loc = pc_lst;
-                             color = ncolor;
-                             promote = None;
-                             turn = st.turn + 1;
-                             wking = (xf,yf);
-                             check = color_in_check ncolor truth;
-                             checkmate = None
-                    }
-          in
-          color_in_checkmate truth st'
-        else
-          (*TODO->*)
-          let st' = {st with pc_loc = pc_lst;
-                             color = ncolor;
-                             promote = None;
-                             turn = st.turn + 1;
-                             check = color_in_check ncolor truth;
-                             checkmate = None
-                    }          (*<-TODO*)
-
-          in
-          color_in_checkmate truth st'
+        let pre_st = {st with pc_loc = pc_lst;
+                              color = ncolor;
+                              promote = None;
+                              turn = st.turn + 1;
+                              check = color_in_check ncolor truth;
+                              checkmate = None
+                     }
+        in
+        let st' = if (pc.name = King true || pc.name = King false)
+                  && st.color = Black then
+            {pre_st with bking = (xf,yf)}
+            (* color_in_checkmate truth st' *)
+          else if (pc.name = King true || pc.name = King false)
+               && st.color = White then
+            {pre_st with wking = (xf,yf)}
+            (* color_in_checkmate truth st' *)
+          else
+            (*TODO->*)
+            pre_st     (*<-TODO*)
+        in
+        color_in_checkmate truth st'
     else if ((yf = st.trow && st.color = White)
              || (yf = st.brow && st.color = Black)) then
       let new_pawn = {
