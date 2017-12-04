@@ -1,6 +1,7 @@
 open Yojson
 open Printf
 open Dom
+open Command
 
 (* shorthand for Dom_html properties and objects *)
 let window = Dom_html.window
