@@ -164,6 +164,53 @@ let get_image u =
 let make_void e =
   e##style##backgroundColor <- (Js.string "transparent")
 
+(* [get_model i] is the name of the piece with image [i] *)
+let get_model i =
+  let n = i |> Js.to_string |> get_image in
+  let n' = String.(sub n 2 (length n - 2)) in
+  match n' with
+  | "pawn" -> Pawn true
+  | "rook" -> Rook false
+  | "knight" -> Knight
+  | "bishop" -> Bishop
+  | "queen" -> Queen
+  | "king" -> King true
+  | "custom" -> Custom "custom"
+  | _ -> failwith "Impossible"
+
+(* [piece_to_str p] converts a piece to an image name *)
+let piece_to_str p =
+  let n =
+    match p.name with
+    | Pawn _ -> "_pawn"
+    | Rook _ -> "_rook"
+    | Knight -> "_knight"
+    | Bishop -> "_bishop"
+    | Queen -> "_queen"
+    | King _ -> "_king"
+    | Custom _ -> "_custom"
+  in
+  let c =
+    match p.pcolor with
+    | Black -> "b"
+    | White -> "w"
+  in
+  Js.string ("url('images/" ^ c ^ n ^ ".png')")
+
+(* [orig_colors a] is the list of original colors for board squares in [a] *)
+let orig_colors a =
+  List.map (fun x -> (x,(get_square (fst x) (snd x))##style##backgroundColor)) a
+
+(* [draw_board ()] draws the board based on the current state *)
+let draw_board () =
+  List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c)
+    (orig_colors !active_squares);
+  List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
+  List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
+                Js.string "none") !active_squares;
+  List.iter (fun ((x,y),p) -> (get_square x y)##style##backgroundImage <-
+                piece_to_str p) !current_state.pc_loc
+
 (* [get_moves e] is the list of moves a piece at HTML element [e] can make *)
 let get_moves e =
   let i = e##style##backgroundImage |> Js.to_string |> get_image in
@@ -192,6 +239,10 @@ let highlight_one r c m =
     highlighted := (e,b)::!highlighted;
     if Js.to_string b <> "transparent" then
       e##style##backgroundColor <- (Js.string "#ffd456")
+
+(* [highlight_sq s] highlights the square s *)
+let highlight_sq s =
+  (get_square (snd s) (fst s))##style##backgroundColor <- (Js.string "#ffd456")
 
 (* [highlight_moves r c] highlights squares the piece at ([r],[c]) can move to
  * to yellow with move list [m] *)
@@ -236,7 +287,8 @@ let board_helper r c sq =
       let s = String.(sub !chosen_image 14 (length !chosen_image - 14)) in
       let o = get_square (fst m) (snd m) in
       sq##style##backgroundImage <- (Js.string !chosen_image);
-      o##style##backgroundImage <- (Js.string ("url('images/b_" ^ s)))
+      o##style##backgroundImage <- (Js.string ("url('images/b_" ^ s)));
+  init_pieces := (!chosen_image,(r,c))::(!init_pieces)
 
 (* [change_score ()] changes the score on the screen according to state *)
 let change_score () =
@@ -259,30 +311,42 @@ let get_model i =
   | "custom" -> Custom "custom"
   | _ -> failwith "Impossible"
 
+(* [check_mate ()] makes an alert if a player has lost *)
+let check_mate () =
+  match !current_state.checkmate with
+  | Some White -> window##alert (Js.string "Black has won!")
+  | Some Black -> window##alert (Js.string "White has won!")
+  | None -> ()
+
 (* [play_helper r c e b] is the helper function for handle_square
  * during the play stage *)
 let play_helper r c sq b =
   match !chosen_piece with
   | None ->
-    chosen_piece := Some sq;
-    piece_loc := (r,c);
-    List.iter (fun a -> (fst a)##style##backgroundColor <- snd a)
-      !highlighted;
-    sq##style##backgroundColor <- (Js.string "#8c8c8c");
-    highlighted := (sq,b)::(!highlighted);
-    highlight_moves r c (get_moves sq);
+    begin
+      chosen_piece := Some sq;
+      piece_loc := (r,c);
+      List.iter (fun a -> (fst a)##style##backgroundColor <- snd a)
+        !highlighted;
+      sq##style##backgroundColor <- (Js.string "#8c8c8c");
+      highlighted := (sq,b)::(!highlighted);
+      highlight_moves r c (get_moves sq)
+    end
   | Some x ->
-    let img = x##style##backgroundImage in
-    let moves = State.val_move_lst !piece_loc !current_state in
-    if List.mem (r,c) moves then (
-      current_state := State.do' (Move (!piece_loc,(r,c))) !current_state;
-      current_state := State.do' (Promotion (get_model img)) !current_state);
-    chosen_piece := None;
-    List.iter (fun a -> (fst a)##style##backgroundColor <- snd a) !highlighted;
-    if List.mem (r,c) !active_squares then (
-      x##style##backgroundImage <- (Js.string "none");
-      sq##style##backgroundImage <- img);
-    change_score ()
+    begin
+      let img = x##style##backgroundImage in
+      let moves = State.val_move_lst !piece_loc !current_state in
+      if List.mem (r,c) moves then (
+        current_state := State.do' (Move (!piece_loc,(r,c))) !current_state;
+        draw_board ());
+      chosen_piece := None;
+      List.iter (fun a -> (fst a)##style##backgroundColor <- snd a) !highlighted;
+      if List.mem (r,c) !active_squares then (
+        x##style##backgroundImage <- (Js.string "none");
+        sq##style##backgroundImage <- img);
+      change_score ();
+      check_mate ()
+    end
 
 (* [handle_square r c _] is the callback for a square on the board at row [r]
  * and column [c] *)
@@ -366,7 +430,7 @@ let rec pieces_string x s =
       let w = get_image n in
       let x = String.(length w - 2 |> sub w 2 |> capitalize_ascii) in
       pieces_string t (s^"{\"piece\":{\"name\":\"" ^ x ^ "\",\"color\":\"" ^ p ^
-                       "\"},\"position\":\"(" ^ (string_of_int r) ^ "," ^ (string_of_int c) ^
+                       "\"},\"position\":\"(" ^ (string_of_int c) ^ "," ^ (string_of_int r) ^
                        ")\"},")
   end
 
@@ -389,17 +453,17 @@ let create_json () =
   let d = String.(sub d' 0 (length d' - 1)) ^ "}],\"pc_loc\": [" in
   let e' = pieces_string !init_pieces "" in
   let e = String.(sub e' 0 (length e' - 1)) in
-  let f = "],\n  \"captured\": [],\n  \"color\": \"White\",\"" in
-  let g = "\"trow\":" ^ List.(hd !active_squares |> fst |> string_of_int)^"," in
+  let f = "],\"captured\": [], \"color\": \"White\"," in
+  let g = "\"trow\":" ^ List.(hd !active_squares |> snd |> string_of_int)^"," in
   let h = "\"brow\":" ^ List.(length !active_squares - 1 |> nth !active_squares
                               |> snd |> string_of_int) ^ "," in
   let i = "\"promote\": \"None\",\"turn\": 1,\"score\": \"(0,0)\"," in
   let j' = List.assoc "url('images/w_king.png')" !init_pieces in
-  let j = "\"wking\":\"(" ^ (string_of_int (fst j')) ^ "," ^
-          (string_of_int (snd j')) ^ ")\"," in
+  let j = "\"wking\":\"(" ^ (string_of_int (snd j')) ^ "," ^
+          (string_of_int (fst j')) ^ ")\"," in
   let k' = List.assoc "url('images/b_king.png')" !init_pieces in
-  let k = "\"bking\":\"(" ^ (string_of_int (fst k')) ^ "," ^
-          (string_of_int (snd k')) ^ ")\"," in
+  let k = "\"bking\":\"(" ^ (string_of_int (snd k')) ^ "," ^
+          (string_of_int (fst k')) ^ ")\"," in
   let l = " \"check\": \"None\", \"checkmate\": \"None\"}" in
   let json = a^b^c^d^e^f^g^h^i^j^k^l in
   Yojson.Basic.from_string json
