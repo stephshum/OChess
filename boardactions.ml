@@ -449,14 +449,14 @@ let create_json () =
            " \"pattern\": [ \"King\" ]},{\"name\": \"Pawn\",\"pattern\": [ \"Pawn\" ]"
   in
   let c = "},{\"name\":\"custom\",\"pattern\":[" in
-  let d' = List.fold_left (fun x y -> x ^ "\"" ^ y ^ "\",") "" !custom_moves in
-  let d = String.(sub d' 0 (length d' - 1)) ^ "}],\"pc_loc\": [" in
+  let d' = List.fold_left (fun x y -> x^"\""^y^"\",") "" !custom_moves in
+  let d = String.(sub d' 0 (length d')) ^ "]}],\"pc_loc\": [" in
   let e' = pieces_string !init_pieces "" in
   let e = String.(sub e' 0 (length e' - 1)) in
   let f = "],\"captured\": [], \"color\": \"White\"," in
   let g = "\"trow\":" ^ List.(hd !active_squares |> snd |> string_of_int)^"," in
   let h = "\"brow\":" ^ List.(length !active_squares - 1 |> nth !active_squares
-                              |> snd |> string_of_int) ^ "," in
+    |> snd |> string_of_int) ^ "," in
   let i = "\"promote\": \"None\",\"turn\": 1,\"score\": \"(0,0)\"," in
   let j' = List.assoc "url('images/w_king.png')" !init_pieces in
   let j = "\"wking\":\"(" ^ (string_of_int (snd j')) ^ "," ^
