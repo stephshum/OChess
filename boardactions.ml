@@ -1,5 +1,4 @@
 open Yojson
-open Printf
 open Dom
 open Command
 open State
@@ -29,7 +28,7 @@ let current_state : State.state ref = ref {
     trow = 0;
     brow = 0;
     turn = 0;
-    score = (0,0); (* left is White score, right is Black score *)
+    score = (4,3); (* left is White score, right is Black score *)
     wking = (0,0);
     bking = (0,0);
     powvalid = [];
@@ -324,10 +323,11 @@ let play_helper r c sq b =
   match !chosen_piece with
   | None ->
     begin
-      chosen_piece := Some sq;
-      piece_loc := (r,c);
       List.iter (fun a -> (fst a)##style##backgroundColor <- snd a)
         !highlighted;
+      if Js.to_string sq##style##backgroundImage <> "" then
+        (chosen_piece := Some sq;
+         piece_loc := (c,r));
       sq##style##backgroundColor <- (Js.string "#8c8c8c");
       highlighted := (sq,b)::(!highlighted);
       highlight_moves r c (get_moves sq)
@@ -335,17 +335,17 @@ let play_helper r c sq b =
   | Some x ->
     begin
       let img = x##style##backgroundImage in
-      let moves = State.val_move_lst !piece_loc !current_state in
-      if List.mem (r,c) moves then (
-        current_state := State.do' (Move (!piece_loc,(r,c))) !current_state;
-        draw_board ());
-      chosen_piece := None;
       List.iter (fun a -> (fst a)##style##backgroundColor <- snd a) !highlighted;
-      if List.mem (r,c) !active_squares then (
-        x##style##backgroundImage <- (Js.string "none");
-        sq##style##backgroundImage <- img);
-      change_score ();
-      check_mate ()
+      if List.mem (r,c) !active_squares && (!chosen_piece <> None) then (
+        let moves = State.val_move_lst !piece_loc !current_state in
+        if List.mem (c,r) moves then (
+          current_state := State.do' (Move (!piece_loc,(c,r))) !current_state;
+          draw_board ();
+          x##style##backgroundImage <- (Js.string "none");
+          sq##style##backgroundImage <- img;
+          chosen_piece := None;
+          change_score ();
+          check_mate ()))
     end
 
 (* [handle_square r c _] is the callback for a square on the board at row [r]
@@ -417,7 +417,7 @@ let handle_makeboard _ =
   List.iter (fun x -> (fst x)##style##backgroundColor <- snd x) !highlighted;
   highlighted := [];
   window##alert (Js.string "You are now customizing your board. Click to turn
-  squares into voids, and finally move pieces on to the board.");
+  squares into voids, and finally move WHITE pieces on to the board.");
   Js._false
 
 (* [pieces_string x s] is the string of pieces and their starting positions *)
@@ -456,7 +456,7 @@ let create_json () =
   let f = "],\"captured\": [], \"color\": \"White\"," in
   let g = "\"trow\":" ^ List.(hd !active_squares |> snd |> string_of_int)^"," in
   let h = "\"brow\":" ^ List.(length !active_squares - 1 |> nth !active_squares
-    |> snd |> string_of_int) ^ "," in
+                              |> snd |> string_of_int) ^ "," in
   let i = "\"promote\": \"None\",\"turn\": 1,\"score\": \"(0,0)\"," in
   let j' = List.assoc "url('images/w_king.png')" !init_pieces in
   let j = "\"wking\":\"(" ^ (string_of_int (snd j')) ^ "," ^
