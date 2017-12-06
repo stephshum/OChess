@@ -2,6 +2,8 @@ open State
 open Command
 open Models
 
+
+(* [print_pc name] prints the piece name to terminal *)
 let print_pc = function
   | Rook _ -> print_endline "Rook"
   | Knight -> print_endline "Knight"
@@ -11,10 +13,12 @@ let print_pc = function
   | Pawn _ -> print_endline "Pawn"
   | Custom s -> print_endline s
 
+(* [str_of_color color] returns the [color] as a string *)
 let str_of_color = function
   | Black -> "Black"
   | White -> "White"
 
+(* [str_of_pc name] returns the piece name as a string *)
 let str_of_pc = function
   | Rook _ -> "Rook"
   | Knight -> "Knight"
@@ -24,6 +28,7 @@ let str_of_pc = function
   | Pawn _ -> "Pawn"
   | Custom s -> s
 
+(* [str_of_pc_loc acc pc_loc] returns a string of pieces and their positions *)
 let rec str_of_pc_loc acc pc_loc =
   match pc_loc with
   | [] -> acc
@@ -32,9 +37,11 @@ let rec str_of_pc_loc acc pc_loc =
     str_of_pc_loc (acc^(str_of_color pc.pcolor)^" "^
                    (str_of_pc pc.name)^" "^pos) t
 
+(* [str_of_loc loc] returns  the location as a string *)
 let rec str_of_loc (x,y) =
   "("^(string_of_int x)^","^(string_of_int y)^")\n"
 
+(* [str_of_cap acc cap] returns names of the color and pieces captured *)
 let rec str_of_cap acc cap =
   match cap with
   | [] -> acc
@@ -42,22 +49,24 @@ let rec str_of_cap acc cap =
     str_of_cap (acc^(str_of_color pc.pcolor)^" "^
         (str_of_pc pc.name)^"\n") t
 
+(* [str_of_score score] returns a formatted string of score *)
 let str_of_score (w,b) =
   "White :"^(string_of_int w)^", Black: "^(string_of_int b)^"\n"
 
-(* TODO SPEC *)
+(* [str_of_moves acc moves] returns a string of valid move locations *)
 let rec str_of_moves acc moves =
   match moves with
   | [] -> acc
   | (x,y)::t ->
     str_of_moves (acc^" ("^(string_of_int x)^","^(string_of_int y)^")") t
 
+(* [check_str check] returns the string of the color or none if [None] *)
 let check_str = function
   | None -> "None"
   | Some Black -> "Black"
   | Some White -> "White"
 
-(* TODO SPEC *)
+(* [game_loop game] is the repl used to test chess in terminal *)
 let rec game_loop game =
   (*print_endline "Pieces in play:\n";
     print_endline ((game.pc_loc |> str_of_pc_loc "["))^"]\n";*)
@@ -136,7 +145,8 @@ let rec game_loop game =
           | _ -> print_endline "Invalid command"; game_loop game
       end
 
-(* TODO SPEC *)
+(* [play_game f] attempts to create a state from json and if succesful,
+ *  initiates game_loop. Prints fail message if unsuccessful. *)
 let play_game f =
   try
     let game = f |> Yojson.Basic.from_file |> init_state in
