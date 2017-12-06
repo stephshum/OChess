@@ -26,6 +26,3 @@ js:
 
 play:
 	ocamlbuild -use-ocamlfind test_engine.byte && ./test_engine.byte
-
-clean:
-	ocamlbuild -clean

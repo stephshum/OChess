@@ -430,8 +430,8 @@ let rec pieces_string x s =
       let w = get_image n in
       let x = String.(length w - 2 |> sub w 2 |> capitalize_ascii) in
       pieces_string t (s^"{\"piece\":{\"name\":\"" ^ x ^ "\",\"color\":\"" ^ p ^
-                       "\"},\"position\":\"(" ^ (string_of_int c) ^ "," ^ (string_of_int r) ^
-                       ")\"},")
+          "\"},\"position\":\"(" ^ (string_of_int c) ^ "," ^ (string_of_int r) ^
+          ")\"},")
   end
 
 (* [create_json ()] creates a JSON string for the initial state of the game *)
@@ -446,11 +446,12 @@ let create_json () =
            "\"(2,1)\", \"(2,-1)\" ]},{\"name\": \"Bishop\", \"pattern\": ["^
            " \"DiagL\", \"DiagR\" ]},{\"name\":\"Queen\", \"pattern\": [ "^
            "\"DiagL\", \"DiagR\", \"Up\", \"Right\" ]},{\"name\": \"King\","^
-           " \"pattern\": [ \"King\" ]},{\"name\": \"Pawn\",\"pattern\": [ \"Pawn\" ]"
+           " \"pattern\": [ \"King\" ]},{\"name\": \"Pawn\",\"pattern\": [ "^
+           "\"Pawn\" ]"
   in
   let c = "},{\"name\":\"custom\",\"pattern\":[" in
   let d' = List.fold_left (fun x y -> x^"\""^y^"\",") "" !custom_moves in
-  let d = String.(sub d' 0 (length d')) ^ "]}],\"pc_loc\": [" in
+  let d = String.(sub d' 0 (length d'-1)) ^ "]}],\"pc_loc\": [" in
   let e' = pieces_string !init_pieces "" in
   let e = String.(sub e' 0 (length e' - 1)) in
   let f = "],\"captured\": [], \"color\": \"White\"," in
