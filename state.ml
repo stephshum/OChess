@@ -2,6 +2,13 @@ open Command
 open Models
 open Yojson.Basic.Util
 
+open Dom
+
+(* shorthand for Dom_html properties and objects *)
+let window = Dom_html.window
+let document = window##document
+let handler = Dom_html.handler
+
 type state = {
   missing: position list;
   pieces: (name * (move list)) list;
@@ -23,13 +30,21 @@ type state = {
 let init_state j =
   let re = Str.regexp "-*[0-9]+" in
   let int_tuple_of_json j =
+    window##alert (Js.string "This beginning of int_tuple");
     let s = j |> to_string in
-    let pos = Str.search_forward re s 0 in
+    window##alert (Js.string "1");
+    let pos = (fun x ->
+    window##alert (Js.string "applying search"); Str.search_forward re s x) 0 in
+    window##alert (Js.string "2");
     let fs = Str.matched_string s in
+    window##alert (Js.string "3");
     let nxt = (String.sub s (String.length fs+pos)
                  (String.length s - String.length fs-pos)) in
+    window##alert (Js.string "4");
     let _ = Str.search_forward re nxt 0 in
+    window##alert (Js.string "5");
     let sn = Str.matched_string nxt in
+    window##alert (Js.string "end of int_tuple");
     (fs|>int_of_string,sn|>int_of_string)
   in
   let color_of_json j =
@@ -64,7 +79,9 @@ let init_state j =
     in
     (name,pattern)
   in
-  let piece_of_json j = {
+  let piece_of_json j =
+    window##alert (Js.string "This beginning of piece");
+  {
     name = j |> member "name" |> name_of_json;
     pcolor = j |> member "color" |> color_of_json;
   }
@@ -110,24 +127,28 @@ let init_state j =
     | 6 -> CultMurder
     | _ -> failwith "oops"
   in
-  {
-    missing = j |> member "missing" |> to_list |> List.map int_tuple_of_json;
-    pieces = j |> member "pieces" |> to_list |> List.map piece_ref_of_json;
-    pc_loc = j |> member "pc_loc" |> to_list |> List.map pc_loc_of_json;
-    captured = j |> member "captured" |> to_list |> List.map piece_of_json;
-    color = j |> member "color" |> color_of_json;
-    promote = None;
-    trow = j |> member "trow" |> to_int;
-    brow = j |> member "brow" |> to_int;
-    turn = j |> member "turn" |> to_int;
-    score = j |> member "score" |> int_tuple_of_json;
-    wking = j |> member "wking" |> int_tuple_of_json;
-    bking = j |> member "bking" |> int_tuple_of_json;
-    powvalid = [((1,4), powerup_used1); ((1,7), powerup_used1);
-                ((10,7), powerup_used2); ((10,4), powerup_used2) ]; (*TODO rewrite this*)
-    check = j |> member "check" |> check_of_json;
-    checkmate = j |> member "promote" |> checkmate_of_json
-  }
+  let rcd =
+    {
+      missing = j |> member "missing" |> to_list |> List.map int_tuple_of_json;
+      pieces = j |> member "pieces" |> to_list |> List.map piece_ref_of_json;
+      pc_loc = j |> member "pc_loc" |> to_list |> List.map pc_loc_of_json;
+      captured = j |> member "captured" |> to_list |> List.map piece_of_json;
+      color = j |> member "color" |> color_of_json;
+      promote = None;
+      trow = j |> member "trow" |> to_int;
+      brow = j |> member "brow" |> to_int;
+      turn = j |> member "turn" |> to_int;
+      score = j |> member "score" |> int_tuple_of_json;
+      wking = j |> member "wking" |> int_tuple_of_json;
+      bking = j |> member "bking" |> int_tuple_of_json;
+      powvalid = [((1,4), powerup_used1); ((1,7), powerup_used1);
+                  ((10,7), powerup_used2); ((10,4), powerup_used2) ]; (*TODO rewrite this*)
+      check = j |> member "check" |> check_of_json;
+      checkmate = j |> member "promote" |> checkmate_of_json
+    }
+  in
+  window##alert (Js.string "final stretch");
+  rcd
 
 (* [in_check miss pcs clr kloc] true if [clr] king is in check
  * requires:

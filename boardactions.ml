@@ -287,7 +287,9 @@ let board_helper r c sq =
       let o = get_square (fst m) (snd m) in
       sq##style##backgroundImage <- (Js.string !chosen_image);
       o##style##backgroundImage <- (Js.string ("url('images/b_" ^ s)));
-  init_pieces := (!chosen_image,(r,c))::(!init_pieces)
+  let im_w = !chosen_image in
+  let im_b = String.((sub im_w 0 12)^"b"^(sub im_w 13 (length im_w-13))) in
+  init_pieces := (im_w,(r,c))::(im_b,(11-r,c))::(!init_pieces)
 
 (* [change_score ()] changes the score on the screen according to state *)
 let change_score () =
@@ -426,7 +428,7 @@ let rec pieces_string x s =
     match x with
     | [] -> s
     | (n,(r,c))::t ->
-      let p = if String.get n 0 = 'b' then "Black" else "White" in
+      let p = if String.get n 12 = 'b' then "Black" else "White" in
       let w = get_image n in
       let x = String.(length w - 2 |> sub w 2 |> capitalize_ascii) in
       pieces_string t (s^"{\"piece\":{\"name\":\"" ^ x ^ "\",\"color\":\"" ^ p ^
@@ -436,10 +438,15 @@ let rec pieces_string x s =
 
 (* [create_json ()] creates a JSON string for the initial state of the game *)
 let create_json () =
-  let void x y = x ^ ",\"(" ^ (y |> fst |> string_of_int) ^
-                 "," ^ (y |> snd |> string_of_int) ^ ")\"" in
+  let void x y = x ^ ",\"(" ^ (y |> snd |> string_of_int) ^
+                 "," ^ (y |> fst |> string_of_int) ^ ")\"" in
   let a' = List.fold_left void "" !void_squares in
-  let a = "{\"missing\":[" ^ String.(sub a' 1 (length a' - 1)) in
+  let a =
+    try
+      "{\"missing\":[" ^ String.(sub a' 1 (length a' - 1))
+    with
+    | _ -> "{\"missing\":["
+  in
   let b =  "],\"pieces\": [{\"name\": \"Rook\",\"pattern\": [ \"Up\","^
            "\"Right\" ]},{\"name\": \"Knight\",\"pattern\": [ \"(1,2)\", "^
            "\"(-1,2)\", \"(-2,1)\", \"(-2,-1)\",\"(1,-2)\", \"(-1,-2)\", "^
@@ -451,7 +458,12 @@ let create_json () =
   in
   let c = "},{\"name\":\"custom\",\"pattern\":[" in
   let d' = List.fold_left (fun x y -> x^"\""^y^"\",") "" !custom_moves in
-  let d = String.(sub d' 0 (length d'-1)) ^ "]}],\"pc_loc\": [" in
+  let d =
+    try
+      String.(sub d' 0 (length d'-1)) ^ "]}],\"pc_loc\": ["
+    with
+    | _ -> "]}],\"pc_loc\": ["
+  in
   let e' = pieces_string !init_pieces "" in
   let e = String.(sub e' 0 (length e' - 1)) in
   let f = "],\"captured\": [], \"color\": \"White\"," in
@@ -474,7 +486,8 @@ let handle_play _ =
   current_stage := Play;
   chosen_image := "none";
   now_playing ();
-  current_state := State.init_state (create_json ());
+  window##alert (Js.string "before init_state creation");
+  current_state := init_state (create_json ());
   window##alert (Js.string "Start playing! You will not be able to customize
   the board or pieces further.");
   Js._false
