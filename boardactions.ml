@@ -248,14 +248,14 @@ let piece_helper r c sq b =
 (* [draw_board_init] redraws board during map customization *)
 let draw_board_init () =
   List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c) og;
+  List.iter (fun (c,r) ->
+      (get_square r c)##style##backgroundColor <- Js.string "#a8a8a8")
+    [(1,4);(1,7);(10,7);(10,4)];
   List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
   List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
                 Js.string "none") !active_squares;
   List.iter (fun (im,(x,y)) -> (get_square x y)##style##backgroundImage <-
-                Js.string im) (!init_pieces);
-  List.iter (fun (c,r) ->
-      (get_square r c)##style##backgroundColor <- Js.string "#a8a8a8")
-    [(1,4);(1,7);(10,7);(10,4)]
+                Js.string im) (!init_pieces)
 
 (*
  * [board_helper r c e] is the helper function for handle_square
@@ -284,7 +284,7 @@ let board_helper r c sq =
   )
   else (
     if List.mem (r,c) !active_squares && not (List.fold_left
-                                                (fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
+    (fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
       let im_w = !chosen_image in
       let im_b = String.((sub im_w 0 12)^"b"^(sub im_w 13 (length im_w-13))) in
       init_pieces := (im_w,(r,c))::(im_b,(11-r,c))::(!init_pieces);
@@ -553,13 +553,37 @@ let create_json () =
 
 (* [handle_play _] is the callback for the start game button *)
 let handle_play _ =
-  current_stage := Play;
-  chosen_image := "none";
-  now_playing ();
-  current_state := init_state (create_json ());
-  window##alert (Js.string "Start playing! You will not be able to customize
-  the board or pieces further. Gray squares are random powerups.");
-  Js._false
+  if (fst (List.fold_left (fun (one,(wk,bk)) (n,_) ->
+      if one then (
+        if wk then (not (n="url('images/w_king.png')"),(wk,bk))
+        else if bk then (not (n="url('images/b_king.png')"),(wk,bk))
+        else (one,(wk,bk))
+      )
+      else (
+        if wk then (
+          if bk then (false,(wk,bk))
+          else (n="url('images/b_king.png')",(wk,n="url('images/b_king.png')"))
+        )
+        else if bk then (
+          if wk then (false,(wk,bk))
+          else (n="url('images/w_king.png')",(n="url('images/w_king.png')",bk))
+        )
+        else (one,(n="url('images/w_king.png')",n="url('images/b_king.png')"))
+      )
+    )
+  (false,(false,false)) !init_pieces)) then (
+    current_stage := Play;
+    chosen_image := "none";
+    now_playing ();
+    current_state := init_state (create_json ());
+    window##alert (Js.string "Start playing! You will not be able to customize
+    the board or pieces further. Gray squares are random powerups.");
+    Js._false
+  )
+  else (
+    window##alert (Js.string "Please put a king of each color on the board.");
+    Js._false
+  )
 
 (* [onload _] registers clicks for buttons upon loading the HTML page.
  * Inspired by Ram Vellanki's scrabble game onload function. *)
