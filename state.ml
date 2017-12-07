@@ -28,25 +28,18 @@ type state = {
 }
 
 let init_state j =
+  (* TODO *)
   let re = Str.regexp "-*[0-9]+" in
   let int_tuple_of_json j =
-    window##alert (Js.string "This beginning of int_tuple");
     let s = j |> to_string in
-    window##alert (Js.string "1");
-    let pos = (fun x ->
-    window##alert (Js.string "applying search"); Str.search_forward re s x) 0 in
-    window##alert (Js.string "2");
+    let pos = Str.search_forward re s 0 in
     let fs = Str.matched_string s in
-    window##alert (Js.string "3");
     let nxt = (String.sub s (String.length fs+pos)
                  (String.length s - String.length fs-pos)) in
-    window##alert (Js.string "4");
     let _ = Str.search_forward re nxt 0 in
-    window##alert (Js.string "5");
     let sn = Str.matched_string nxt in
-    window##alert (Js.string "end of int_tuple");
     (fs|>int_of_string,sn|>int_of_string)
-  in
+  in (* TODO *)
   let color_of_json j =
     let s = j |> to_string in
     if s = "Black" then Black
