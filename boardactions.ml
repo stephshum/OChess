@@ -210,47 +210,15 @@ let draw_board () =
   List.iter (fun ((x,y),p) -> (get_square y x)##style##backgroundImage <-
                 piece_to_str p) !current_state.pc_loc
 
-(* [get_moves e] is the list of moves a piece at HTML element [e] can make *)
-let get_moves e =
-  let i = e##style##backgroundImage |> Js.to_string |> get_image in
-  match i with
-  | "w_pawn" -> ["Pawn"]
-  | "w_rook" -> ["Up"; "Right"]
-  | "w_knight" -> ["(1,2)";"(-1,2)";"(-2,1)";"(-2,-1)";"(1,-2)";
-                   "(-1,-2)";"(2,1)";"(2,-1)"]
-  | "w_bishop" -> ["DiagL";"DiagR"]
-  | "w_queen" -> ["DiagL";"DiagR";"Up";"Right"]
-  | "w_king" -> ["King"]
-  | _ -> !custom_moves
-
-(* [highlight_one m] highlights squares corresponding to move [m] *)
-let highlight_one r c m =
-  match m with
-  | "Up" -> get_col 0 c []
-  | "Right" -> get_row r 0 []
-  | "DiagL" -> get_diag ((get_up_diagL r c []) @ (get_d_diagL r c []))
-  | "DiagR" -> get_diag ((get_up_diagR r c []) @ (get_d_diagR r c []))
-  | x -> let com = String.index x ',' in
-    let r' = String.sub x 1 (com-1) |> int_of_string in
-    let c' = String.(sub x (com+1) (length x - com - 2)) |> int_of_string in
-    let e = get_square (r+r') (c+c') in
-    let b = e##style##backgroundColor in
-    highlighted := (e,b)::!highlighted;
-    if Js.to_string b <> "transparent" then
-      e##style##backgroundColor <- (Js.string "#ffd456")
-
 (* [highlight_sq s] highlights the square s *)
 let highlight_sq s =
   (get_square (snd s) (fst s))##style##backgroundColor <- (Js.string "#ffd456")
 
 (* [highlight_moves r c] highlights squares the piece at ([r],[c]) can move to
- * to yellow with move list [m] *)
-let rec highlight_moves r c m =
-  let i = Js.to_string (get_square r c)##style##backgroundImage in
-  if get_image i = "w_custom" || (get_image i = "b_custom") then
-    match m with
-    | [] -> ()
-    | h::t -> (highlight_one r c h); (highlight_moves r c t)
+ * to yellow *)
+let rec highlight_moves () =
+  let moves = State.val_move_lst !piece_loc !current_state in
+  List.iter highlight_sq moves
 
 (* [piece_helper r c e b] is the helper function for handle_square
  * during the custom piece stage *)
