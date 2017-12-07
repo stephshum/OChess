@@ -207,7 +207,7 @@ let draw_board () =
   List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
   List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
                 Js.string "none") !active_squares;
-  List.iter (fun ((x,y),p) -> (get_square x y)##style##backgroundImage <-
+  List.iter (fun ((x,y),p) -> (get_square y x)##style##backgroundImage <-
                 piece_to_str p) !current_state.pc_loc
 
 (* [get_moves e] is the list of moves a piece at HTML element [e] can make *)
@@ -319,35 +319,43 @@ let check_mate () =
   | Some Black -> window##alert (Js.string "White has won!")
   | None -> ()
 
-(* [play_helper r c e b] is the helper function for handle_square
+(* [play_helper r c sq b] is the helper function for handle_square
  * during the play stage *)
 let play_helper r c sq b =
-  match !chosen_piece with
+  match (!current_state).promote with
   | None ->
     begin
-      List.iter (fun a -> (fst a)##style##backgroundColor <- snd a)
-        !highlighted;
-      if Js.to_string sq##style##backgroundImage <> "" then
-        (chosen_piece := Some sq;
-         piece_loc := (c,r));
-      sq##style##backgroundColor <- (Js.string "#8c8c8c");
-      highlighted := (sq,b)::(!highlighted);
-      highlight_moves r c (get_moves sq)
+      match !chosen_piece with
+      | None ->
+        begin
+          List.iter (fun a -> (fst a)##style##backgroundColor <- snd a)
+            !highlighted;
+          if Js.to_string sq##style##backgroundImage <> "" then
+            (chosen_piece := Some sq;
+             piece_loc := (c,r));
+          sq##style##backgroundColor <- (Js.string "#8c8c8c");
+          highlighted := (sq,b)::(!highlighted);
+          highlight_moves r c (get_moves sq)
+        end
+      | Some x ->
+        begin
+          let img = x##style##backgroundImage in
+          List.iter (fun a -> (fst a)##style##backgroundColor <- snd a) !highlighted;
+          if List.mem (r,c) !active_squares && (!chosen_piece <> None) then (
+            let moves = State.val_move_lst !piece_loc !current_state in
+            if List.mem (c,r) moves then (
+              current_state := State.do' (Move (!piece_loc,(c,r))) !current_state;
+              draw_board ();
+              x##style##backgroundImage <- (Js.string "none");
+              sq##style##backgroundImage <- img;
+              chosen_piece := None;
+              change_score ();
+              check_mate ()))
+        end
     end
-  | Some x ->
+  | Some pos ->
     begin
-      let img = x##style##backgroundImage in
-      List.iter (fun a -> (fst a)##style##backgroundColor <- snd a) !highlighted;
-      if List.mem (r,c) !active_squares && (!chosen_piece <> None) then (
-        let moves = State.val_move_lst !piece_loc !current_state in
-        if List.mem (c,r) moves then (
-          current_state := State.do' (Move (!piece_loc,(c,r))) !current_state;
-          draw_board ();
-          x##style##backgroundImage <- (Js.string "none");
-          sq##style##backgroundImage <- img;
-          chosen_piece := None;
-          change_score ();
-          check_mate ()))
+      window##alert (Js.string "Please choose piece to promote")
     end
 
 (* [handle_square r c _] is the callback for a square on the board at row [r]
