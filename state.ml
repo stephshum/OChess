@@ -21,7 +21,6 @@ type state = {
 }
 
 let init_state j =
-  let re = Str.regexp "-*[0-9]+" in
   let int_tuple_of_json j =
     let str = j |> to_string in
     let len = str |> String.length in
