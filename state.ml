@@ -29,6 +29,161 @@ let init_state j =
   let int_tuple_of_json j =
     let str = j |> to_string in
     let len = str |> String.length in
+    let find_neg1 = String.index_opt str '-' in
+    match find_neg1 with
+    | Some n -> begin
+        let find_neg2 = String.rindex_opt str '-' in
+        match find_neg2 with
+        | Some i -> if (n <> i) then begin
+            if len = 9
+            then
+              let ff = String.get str 2 in
+              let fs = String.get str 3 in
+              let sf = String.get str 6 in
+              let ss = String.get str 7 in
+              let cff = Char.code ff in
+              let cfs = Char.code fs in
+              let csf = Char.code sf in
+              let css = Char.code ss in
+              let intff = cff - 48 in
+              let intfs = cfs - 48 in
+              let intsf = csf - 48 in
+              let intss = css - 48 in
+              (-intff*10-intfs, -intsf*10-intss)
+            else if len = 7
+            then
+              let f = String.get str 2 in
+              let s = String.get str 5 in
+              let cf = Char.code f in
+              let cs = Char.code s in
+              let intf = cf - 48 in
+              let ints = cs - 48 in
+              (-intf, -ints)
+            else if ((String.get str 3) = ',')
+            then
+              let f = String.get str 2 in
+              let sf = String.get str 5 in
+              let ss = String.get str 6 in
+              let cf = Char.code f in
+              let csf = Char.code sf in
+              let css = Char.code ss in
+              let intf = cf - 48 in
+              let intsf = csf - 48 in
+              let intss = css - 48 in
+              (-intf, -intsf*10 - intss)
+            else
+              let ff = String.get str 2 in
+              let fs = String.get str 3 in
+              let s = String.get str 6 in
+              let cff = Char.code ff in
+              let cfs = Char.code fs in
+              let cs = Char.code s in
+              let intff = cff - 48 in
+              let intfs = cfs - 48 in
+              let ints = cs - 48 in
+              (-intff*10 - intfs, -ints)
+          end
+          else if (n = 1) then begin
+            if len = 8
+            then
+              let ff = String.get str 2 in
+              let fs = String.get str 3 in
+              let sf = String.get str 5 in
+              let ss = String.get str 6 in
+              let cff = Char.code ff in
+              let cfs = Char.code fs in
+              let csf = Char.code sf in
+              let css = Char.code ss in
+              let intff = cff - 48 in
+              let intfs = cfs - 48 in
+              let intsf = csf - 48 in
+              let intss = css - 48 in
+              (-intff*10-intfs, intsf*10+intss)
+            else if len = 6
+            then
+              let f = String.get str 2 in
+              let s = String.get str 4 in
+              let cf = Char.code f in
+              let cs = Char.code s in
+              let intf = cf - 48 in
+              let ints = cs - 48 in
+              (-intf, ints)
+            else if ((String.get str 3) = ',')
+            then
+              let f = String.get str 2 in
+              let sf = String.get str 4 in
+              let ss = String.get str 5 in
+              let cf = Char.code f in
+              let csf = Char.code sf in
+              let css = Char.code ss in
+              let intf = cf - 48 in
+              let intsf = csf - 48 in
+              let intss = css - 48 in
+              (-intf, intsf*10 + intss)
+            else
+              let ff = String.get str 2 in
+              let fs = String.get str 3 in
+              let s = String.get str 5 in
+              let cff = Char.code ff in
+              let cfs = Char.code fs in
+              let cs = Char.code s in
+              let intff = cff - 48 in
+              let intfs = cfs - 48 in
+              let ints = cs - 48 in
+              (-intff*10 - intfs, ints)
+          end
+          else begin
+          if len = 8
+          then
+            let ff = String.get str 1 in
+            let fs = String.get str 2 in
+            let sf = String.get str 5 in
+            let ss = String.get str 6 in
+            let cff = Char.code ff in
+            let cfs = Char.code fs in
+            let csf = Char.code sf in
+            let css = Char.code ss in
+            let intff = cff - 48 in
+            let intfs = cfs - 48 in
+            let intsf = csf - 48 in
+            let intss = css - 48 in
+            (intff*10+intfs, -intsf*10-intss)
+          else if len = 6
+          then
+            let f = String.get str 1 in
+            let s = String.get str 4 in
+            let cf = Char.code f in
+            let cs = Char.code s in
+            let intf = cf - 48 in
+            let ints = cs - 48 in
+            (intf, -ints)
+          else if ((String.get str 2) = ',')
+          then
+            let f = String.get str 1 in
+            let sf = String.get str 4 in
+            let ss = String.get str 5 in
+            let cf = Char.code f in
+            let csf = Char.code sf in
+            let css = Char.code ss in
+            let intf = cf - 48 in
+            let intsf = csf - 48 in
+            let intss = css - 48 in
+            (intf, -intsf*10 - intss)
+          else
+            let ff = String.get str 1 in
+            let fs = String.get str 2 in
+            let s = String.get str 5 in
+            let cff = Char.code ff in
+            let cfs = Char.code fs in
+            let cs = Char.code s in
+            let intff = cff - 48 in
+            let intfs = cfs - 48 in
+            let ints = cs - 48 in
+            (intff*10+intfs, -ints)
+        end
+        | None -> failwith "oops"
+    end
+    | None ->
     if len = 7
     then
       let ff = String.get str 1 in
