@@ -11,7 +11,7 @@ let handler = Dom_html.handler
 
 (* [stage] is the type representing what stage the users are in while using the
  * application *)
-type stage = Custom_piece | Custom_board | Play | Start
+type stage = Custom_piece | Custom_board | Play | Start | End
 
 (* [current_stage] is the stage the users are in currently and starts initially
  * at Custom_board *)
@@ -163,20 +163,6 @@ let get_image u =
 let make_void e =
   e##style##backgroundColor <- (Js.string "transparent")
 
-(* [get_model i] is the name of the piece with image [i] *)
-let get_model i =
-  let n = i |> Js.to_string |> get_image in
-  let n' = String.(sub n 2 (length n - 2)) in
-  match n' with
-  | "pawn" -> Pawn true
-  | "rook" -> Rook false
-  | "knight" -> Knight
-  | "bishop" -> Bishop
-  | "queen" -> Queen
-  | "king" -> King true
-  | "custom" -> Custom "custom"
-  | _ -> failwith "Impossible"
-
 (* [piece_to_str p] converts a piece to an image name *)
 let piece_to_str p =
   let n =
@@ -233,12 +219,20 @@ let piece_helper r c sq b =
  * during the custom board stage *)
 let board_helper r c sq =
   let m = (11-r, c) in
-  if !chosen_image = "none" then (
+  if Js.to_string sq##style##backgroundColor = "none" then (
+    let w = List.assoc (r,c) (orig_colors !active_squares) in
+    let b = List.assoc (r,c) (orig_colors !active_squares) in
+    sq##style##backgroundColor <- w;
+    (get_square r c)##style##backgroundColor <- b;
+    void_squares := List.filter (fun x -> x <> (r,c) && (x <> m)) !void_squares
+  )
+  else if !chosen_image = "none" then (
     void_squares := m::(r,c)::(!void_squares);
     active_squares := List.filter (fun x -> x <> (r,c) && (x <> m))
         !active_squares;
     make_void sq;
-    snd m |> get_square (fst m) |> make_void)
+    snd m |> get_square (fst m) |> make_void
+  )
   else (
     if List.mem (r,c) !active_squares then
       let s = String.(sub !chosen_image 14 (length !chosen_image - 14)) in
@@ -256,25 +250,13 @@ let change_score () =
   (get_element "score-1")##innerHTML <- Js.string
       (!current_state.score |> snd |> string_of_int)
 
-(* [get_model i] is the name of the piece with image [i] *)
-let get_model i =
-  let n = i |> Js.to_string |> get_image in
-  let n' = String.(sub n 2 (length n - 2)) in
-  match n' with
-  | "pawn" -> Pawn true
-  | "rook" -> Rook true
-  | "knight" -> Knight
-  | "bishop" -> Bishop
-  | "queen" -> Queen
-  | "king" -> King true
-  | "custom" -> Custom "custom"
-  | _ -> failwith "Impossible"
-
 (* [check_mate ()] makes an alert if a player has lost *)
 let check_mate () =
   match !current_state.checkmate with
-  | Some White -> window##alert (Js.string "Black has won!")
-  | Some Black -> window##alert (Js.string "White has won!")
+  | Some White -> window##alert (Js.string "Black has won!");
+    current_stage := End;
+  | Some Black -> window##alert (Js.string "White has won!");
+    current_stage := End;
   | None -> ()
 
 (* [change_player ()] changes background color of the current player score*)
@@ -318,14 +300,13 @@ let play_helper r c sq b =
                 (chosen_piece := Some sq;
                  piece_loc := (c,r));
               sq##style##backgroundColor <- (Js.string "#8c8c8c");
-              highlighted := (sq,b)::(!highlighted);
+              highlight_moves ()
             end
           else
             window##alert (Js.string "Please choose current player's piece.")
         end
       | Some x ->
         begin
-          let img = x##style##backgroundImage in
           List.iter (fun a -> (fst a)##style##backgroundColor <- snd a) !highlighted;
           if List.mem (r,c) !active_squares && (!chosen_piece <> None) then (
             let moves = State.val_move_lst !piece_loc !current_state in
@@ -346,7 +327,7 @@ let handle_square r c _ =
   let b = sq##style##backgroundColor in
   begin
     match !current_stage with
-    | Start -> ()
+    | Start | End -> ()
     | Custom_piece -> piece_helper r c sq b
     | Custom_board -> board_helper r c sq
     | Play -> play_helper r c sq b
@@ -409,7 +390,8 @@ let handle_makeboard _ =
   List.iter (fun x -> (fst x)##style##backgroundColor <- snd x) !highlighted;
   highlighted := [];
   window##alert (Js.string "You are now customizing your board. Click to turn
-  squares into voids, and finally move WHITE pieces on to the board.");
+  squares into voids, and finally move WHITE pieces on to the board. You must \
+  place a king on the board!");
   Js._false
 
 (* [pieces_string x s] is the string of pieces and their starting positions *)
@@ -476,10 +458,9 @@ let handle_play _ =
   current_stage := Play;
   chosen_image := "none";
   now_playing ();
-  window##alert (Js.string "before init_state creation");
   current_state := init_state (create_json ());
   window##alert (Js.string "Start playing! You will not be able to customize
-  the board or pieces further.");
+  the board or pieces further. Gray squares are random powerups.");
   Js._false
 
 let onload _ =
