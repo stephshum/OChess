@@ -159,6 +159,20 @@ let get_diag l =
 let get_image u =
   String.(sub u 12 (length u - 18))
 
+(* [get_model i] is the name of the piece with image [i] *)
+let get_model i =
+  let n = i |> Js.to_string |> get_image in
+  let n' = String.(sub n 2 (length n - 2)) in
+  match n' with
+  | "pawn" -> Pawn true
+  | "rook" -> Rook false
+  | "knight" -> Knight
+  | "bishop" -> Bishop
+  | "queen" -> Queen
+  | "king" -> King true
+  | "custom" -> Custom "custom"
+  | _ -> failwith "Impossible"
+
 (* [make_void e] makes the square for element [e] a void color *)
 let make_void e =
   e##style##backgroundColor <- (Js.string "transparent")
