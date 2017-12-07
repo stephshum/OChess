@@ -241,19 +241,25 @@ let piece_helper r c sq b =
  * during the custom board stage *)
 let board_helper r c sq =
   let m = (11-r, c) in
-  if Js.to_string sq##style##backgroundColor = "none" then (
-    let w = List.assoc (r,c) (orig_colors !active_squares) in
-    let b = List.assoc (r,c) (orig_colors !active_squares) in
-    sq##style##backgroundColor <- w;
-    (get_square r c)##style##backgroundColor <- b;
-    void_squares := List.filter (fun x -> x <> (r,c) && (x <> m)) !void_squares
-  )
-  else if !chosen_image = "none" then (
-    void_squares := m::(r,c)::(!void_squares);
-    active_squares := List.filter (fun x -> x <> (r,c) && (x <> m))
-        !active_squares;
-    make_void sq;
-    snd m |> get_square (fst m) |> make_void
+  if !chosen_image = "none" then (
+    if not (List.fold_left
+    (fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
+      if not (List.mem (r,c) !void_squares) then (
+        void_squares := m::(r,c)::(!void_squares);
+        active_squares := List.filter (fun x -> x <> (r,c) && (x <> m))
+          !active_squares;
+        make_void sq;
+        snd m |> get_square (fst m) |> make_void
+      )
+      else (
+        void_squares := List.filter (fun x->x <> (r,c)&&(x <> m)) !void_squares;
+        active_squares := m::(r,c)::!active_squares;
+        let c = List.assoc (r,c) og in
+        let c2 = List.assoc m og in
+        (get_square (fst m) (snd m))##style##backgroundColor <- c2;
+        sq##style##backgroundColor <- c;
+      ))
+    else ()
   )
   else (
     if List.mem (r,c) !active_squares then
