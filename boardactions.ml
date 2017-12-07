@@ -360,9 +360,7 @@ let rec square_callbacks l =
 
       (*TODO*)
 let promote_helper n =
-  window##alert (Js.string n);
   let name = get_model n in
-  window##alert (Js.string "name");
   match name with
   | King _ -> window##alert (Js.string "Cannot promote to King")
   | Pawn _ -> window##alert (Js.string "Cannot promote to Pawn")
