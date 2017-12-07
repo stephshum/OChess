@@ -105,6 +105,11 @@ let get_button s =
   | Dom_html.Button button -> button
   | _ -> raise (Failure "Not a button")
 
+(* [get_square r c] is the HTML element for a square on the board at row [r]
+ * and column [c] *)
+let get_square r c =
+  get_element ("T-" ^ (string_of_int r) ^ "," ^ (string_of_int c))
+
 (* [highlight_sq s] highlights the square s
  * requires: [s] is an int * int pair *)
 let highlight_sq s =
@@ -125,11 +130,6 @@ let highlight_sq s =
 let rec highlight_moves () =
   let moves = State.val_move_lst !piece_loc !current_state in
   List.iter highlight_sq moves
-
-(* [get_square r c] is the HTML element for a square on the board at row [r]
- * and column [c] *)
-let get_square r c =
-  get_element ("T-" ^ (string_of_int r) ^ "," ^ (string_of_int c))
 
 (* [get_row r c l] highlights the  HTML elements in row [r] *)
 let rec get_row r c (l : Dom_html.element Js.t list) =
