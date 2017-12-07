@@ -165,8 +165,9 @@ let init_state j =
       score = j |> member "score" |> int_tuple_of_json;
       wking = j |> member "wking" |> int_tuple_of_json;
       bking = j |> member "bking" |> int_tuple_of_json;
-      powvalid = [((1,4), powerup_used1); ((1,7), powerup_used1);
-                  ((10,7), powerup_used2); ((10,4), powerup_used2) ]; (*TODO rewrite this*)
+      powvalid = [((1,4), RaisetheDead); ((1,7), RaisetheDead);
+                  ((10,7), RaisetheDead); ((10,4), RaisetheDead);
+                 ]; (*TODO rewrite this*)
       check = j |> member "check" |> check_of_json;
       checkmate = j |> member "promote" |> checkmate_of_json
     }
@@ -450,7 +451,7 @@ let do' cmd st =
       let two_list2 = List.partition predic2 not_void in
       let (_, valid) = two_list2 in
       let new_pawns = List.map (fun x -> (x, {name = Pawn true; pcolor = c})) valid in
-      {st with pc_loc = new_pawns}
+      {st with pc_loc = new_pawns@st.pc_loc}
     in
     if (st.color = White) then
       higherpow [(x,y-1); (x+1, y-1); (x-1, y-1)] White
@@ -459,7 +460,7 @@ let do' cmd st =
   in
   (* Elimination*)
   let pow1 (x, y) st =
-    let predic p = (snd (fst p) = y && (snd p).name <> King true
+    let predic p = (fst (fst p) = x && (snd p).name <> King true
                     && (snd p).name <> King false) in
     let two_list = List.partition predic st.pc_loc in
     let (captured, updated) = two_list in
@@ -494,9 +495,10 @@ let do' cmd st =
   let pow3 (x, y) st =
     let higherpow c =
       let my_pieces = List.filter (fun x -> (x.pcolor = c)) st.captured in
+      if my_pieces = [] then st else
       let my_array = Array.of_list my_pieces in
       let my_len = Array.length my_array in
-      let ran = Random.int (my_len - 1) in
+      let ran = Random.int (my_len) in
       let chosen = Array.get my_array ran in
       let rec rem lst acc a =
         match lst with
@@ -504,12 +506,13 @@ let do' cmd st =
         | [] -> acc
       in
       let new_cap = rem st.captured [] chosen in
-      let ran_spot = Random.int 11 in
-      if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
-         (List.mem (x, ran_spot) st.missing) then
+      let ran_spot = (Random.int 12) in
+      let new_place = (ran_spot, y) in
+      if (List.mem_assoc new_place st.pc_loc) ||
+         (List.mem new_place st.missing) then
         st
       else
-        {st with pc_loc = ((x, ran_spot), chosen)::(st.pc_loc);
+        {st with pc_loc = (new_place, chosen)::(st.pc_loc);
                  captured = new_cap}
     in
     if st.color = White then
@@ -523,16 +526,18 @@ let do' cmd st =
       let my_pieces = List.filter (fun x ->
           let p = snd x in (p.pcolor = c) && p.name <> King true
                            && p.name <> King false) st.pc_loc in
+      if my_pieces = [] then st else
       let my_array = Array.of_list my_pieces in
       let my_len = Array.length my_array in
-      let ran = Random.int (my_len - 1) in
+      let ran = Random.int my_len in
       let chosen = Array.get my_array ran in
-      let ran_spot = Random.int 11 in
-      if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
-         (List.mem (x, ran_spot) st.missing) then
+      let ran_spot = Random.int 12 in
+      let new_place = (ran_spot, y) in
+      if (List.mem_assoc new_place st.pc_loc) ||
+         (List.mem new_place st.missing) then
         st
       else
-        {st with pc_loc = ((x, ran_spot), snd chosen)::(st.pc_loc)}
+        {st with pc_loc = (new_place, snd chosen)::(st.pc_loc)}
     in
     if st.color = White then
       higherpow White
@@ -540,25 +545,28 @@ let do' cmd st =
       higherpow Black
   in
   let pow5 (x,y) st =
-    let higherpow nc =
+    let higherpow nc c=
       let my_pieces = List.filter (fun x ->
           let p = snd x in (p.pcolor = nc) && p.name <> King true
                            && p.name <> King false) st.pc_loc in
+        if my_pieces = [] then st else
         let my_array = Array.of_list my_pieces in
         let my_len = Array.length my_array in
-        let ran = Random.int (my_len - 1) in
+        let ran = Random.int my_len in
         let chosen = Array.get my_array ran in
-        let ran_spot = Random.int 11 in
-        if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
-           (List.mem (x, ran_spot) st.missing) then
+        let changed_piece = {(snd chosen) with pcolor = c} in
+        let ran_spot = Random.int 12 in
+        let new_place = (ran_spot, y) in
+        if (List.mem_assoc new_place st.pc_loc) ||
+           (List.mem new_place st.missing) then
           st
         else
-          {st with pc_loc = ((x, ran_spot), snd chosen)::(st.pc_loc)}
+          {st with pc_loc = (new_place, changed_piece)::(st.pc_loc)}
     in
     if st.color = White then
-      higherpow Black
+      higherpow Black White
     else
-      higherpow White
+      higherpow White Black
   in
   (* CultMurder*)
   let pow6 (x, y) st =
