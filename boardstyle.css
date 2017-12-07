@@ -15,7 +15,7 @@ body {
 .piece_images {
     position: absolute;
     top: 35%;
-    left: 60%;
+    left: 55%;
     table-layout: fixed;
     min-width: 150px;
     min-height: 330px;
