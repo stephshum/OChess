@@ -330,16 +330,16 @@ let val_move_lst (x,y) st =
               not(in_check st.missing st.pieces new_pcs st.color (x',y'))) then
             (x',y')::acc
           else if (st.color=Black &&
-                   not(in_check st.missing st.pieces new_pcs st.color (x',y'))) then
-            (x',y')::acc
+                   not(in_check st.missing st.pieces new_pcs st.color (x',y')))
+          then (x',y')::acc
           else acc
         else
         if (st.color=White &&
             not(in_check st.missing st.pieces new_pcs st.color st.wking)) then
           (x',y')::acc
         else if (st.color=Black &&
-                 not(in_check st.missing st.pieces new_pcs st.color st.bking)) then
-          (x',y')::acc
+                 not(in_check st.missing st.pieces new_pcs st.color st.bking))
+        then (x',y')::acc
         else acc
     ) [] lst
   in
@@ -509,7 +509,8 @@ let do' cmd st =
       let predic2 p = List.mem p jus_pos in
       let two_list2 = List.partition predic2 not_void in
       let (_, valid) = two_list2 in
-      let new_pawns = List.map (fun x -> (x, {name = Pawn true; pcolor = c})) valid in
+      let new_pawns = List.map (fun x ->
+          (x, {name = Pawn true; pcolor = c})) valid in
       window##alert (Js.string "You landed on the Raise the Dead power-up!");
       {st with pc_loc = new_pawns@st.pc_loc;
                powvalid = List.remove_assoc (x,y) st.powvalid}
@@ -555,7 +556,9 @@ let do' cmd st =
     let higherpow c =
       let my_pieces = List.filter (fun x -> (x.pcolor = c)) st.captured in
       if my_pieces = [] then
-        (let _ = window##alert (Js.string "You landed on the Second Chance power-up! Sadly, you have no captured pieces, so your powerup is wasted.") in
+        (let _ = window##alert (Js.string "You landed on the Second Chance
+          power-up! Sadly, you have no captured pieces,
+          so your powerup is wasted.") in
          {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
       let my_array = Array.of_list my_pieces in
@@ -572,10 +575,14 @@ let do' cmd st =
       let new_place = (ran_spot, y) in
       if (List.mem_assoc new_place st.pc_loc) ||
          (List.mem new_place st.missing) then
-        (let _ = window##alert (Js.string "You landed on the Second Chance power-up! Sadly, luck is not in your favor, so your powerup is wasted.") in
+        (let _ = window##alert (Js.string ("You landed on the Second Chance "^
+                                           "power-up! Sadly, luck is not in "^
+                                           "your favor, so your powerup is "^
+                                           "wasted.")) in
          {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
-        (let _ = window##alert (Js.string "You landed on the Second Chance power-up!") in
+        (let _ = window##alert (Js.string ("You landed on the Second Chance "^
+                                           "power-up!")) in
         {st with pc_loc = (new_place, chosen)::(st.pc_loc);
                  captured = new_cap;
                  powvalid = List.remove_assoc (x,y) st.powvalid})
@@ -591,7 +598,10 @@ let do' cmd st =
           let p = snd x in (p.pcolor = c) && p.name <> King true
                            && p.name <> King false) st.pc_loc in
       if my_pieces = [] then
-        (let _ = window##alert (Js.string "You landed on the Clone power-up! Sadly, you don't have anything to clone, so your powerup is wasted.") in
+        (let _ = window##alert (Js.string ("You landed on the Clone power-up! "^
+                                           "Sadly, you don't have anything to "^
+                                           "clone, so your powerup is wasted."))
+         in
          {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
       let my_array = Array.of_list my_pieces in
@@ -602,10 +612,13 @@ let do' cmd st =
       let new_place = (ran_spot, y) in
       if (List.mem_assoc new_place st.pc_loc) ||
          (List.mem new_place st.missing) then
-        (let _ = window##alert (Js.string "You landed on the Clone power-up! Sadly, luck is not in your favor, so your powerup is wasted.") in
+        (let _ = window##alert (Js.string ("You landed on the Clone power-up! "^
+                                           "Sadly, luck is not in your favor, "^
+                                           "so your powerup is wasted.")) in
          {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
-        (let _ = window##alert (Js.string "You landed on the Clone power-up!") in
+        (let _ = window##alert (Js.string "You landed on the Clone power-up!")
+         in
         {st with pc_loc = (new_place, snd chosen)::(st.pc_loc);
                  powvalid = List.remove_assoc (x,y) st.powvalid})
     in
@@ -620,7 +633,10 @@ let do' cmd st =
           let p = snd x in (p.pcolor = nc) && p.name <> King true
                            && p.name <> King false) st.pc_loc in
       if my_pieces = [] then
-        (let _ = window##alert (Js.string "You landed on the Mind Control power-up! Sadly, your opponent doesn't have enough pieces, so your powerup is wasted.") in
+        (let _ = window##alert (Js.string ("You landed on the Mind Control "^
+                                           "power-up! Sadly, your opponent "^
+                                           "doesn't have enough pieces, so "^
+                                           "your powerup is wasted.")) in
          {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
       let my_array = Array.of_list my_pieces in
@@ -632,10 +648,14 @@ let do' cmd st =
       let new_place = (ran_spot, y) in
       if (List.mem_assoc new_place st.pc_loc) ||
          (List.mem new_place st.missing) then
-        (let _ = window##alert (Js.string "You landed on the Mind Control power-up! Sadly, luck is not in your favor, so your powerup is wasted.") in
+        (let _ = window##alert (Js.string ("You landed on the Mind Control "^
+                                           "power-up! Sadly, luck is not in "^
+                                           "your favor, so your powerup is "^
+                                           "wasted.")) in
          {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
-        (let _ = window##alert (Js.string "You landed on the Mind Control power-up!") in
+        (let _ = window##alert (Js.string ("You landed on the Mind Control "^
+                                           "power-up!")) in
         {st with pc_loc = (new_place, changed_piece)::(st.pc_loc);
                  powvalid = List.remove_assoc (x,y) st.powvalid})
     in
@@ -730,7 +750,8 @@ let do' cmd st =
         in
         let pow = check_for_power (xf, yf) st' in
         let pow_state = use_power (xf, yf) pow st' in
-        let truth  = in_check pow_state.missing pow_state.pieces pow_state.pc_loc ncolor kloc in
+        let truth  = in_check pow_state.missing pow_state.pieces
+            pow_state.pc_loc ncolor kloc in
         let fin_state = {pow_state with check = color_in_check ncolor truth;
                                         color = ncolor
                         } in
@@ -811,7 +832,8 @@ let do' cmd st =
         in
         let pow = check_for_power (xf, yf) st' in
         let pow_state = use_power (xf, yf) pow st' in
-        let truth  = in_check pow_state.missing pow_state.pieces pow_state.pc_loc ncolor kloc in
+        let truth  = in_check pow_state.missing pow_state.pieces
+            pow_state.pc_loc ncolor kloc in
         let fin_state = {pow_state with color = ncolor;
                                         check = color_in_check ncolor truth} in
         color_in_checkmate truth fin_state
@@ -825,7 +847,8 @@ let do' cmd st =
       if List.mem_assoc (xf,yf) st.pc_loc then
         let cap = List.assoc (xf,yf) st.pc_loc in
         let pc_lst = ((xf,yf),new_pawn)::(st.pc_loc |>
-                                          List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf)) in
+                                          List.remove_assoc (xi,yi)
+                                          |> List.remove_assoc (xf,yf)) in
         let cap_lst = cap::st.captured in
         let kloc = if ncolor = Black then st.bking else st.wking in
         let st' = {st with pc_loc = pc_lst;
@@ -838,11 +861,13 @@ let do' cmd st =
         in
         let pow = check_for_power (xf, yf) st' in
         let pow_state = use_power (xf, yf) pow st' in
-        let truth  = in_check pow_state.missing pow_state.pieces pow_state.pc_loc ncolor kloc in
+        let truth  = in_check pow_state.missing pow_state.pieces
+            pow_state.pc_loc ncolor kloc in
         let fin_state = {pow_state with check = color_in_check ncolor truth} in
         color_in_checkmate truth fin_state
       else
-        let pc_lst = ((xf,yf),new_pawn)::(st.pc_loc|>List.remove_assoc (xi,yi)) in
+        let pc_lst = ((xf,yf),new_pawn)::(st.pc_loc|>List.remove_assoc (xi,yi))
+        in
         let kloc = if ncolor = Black then st.bking else st.wking in
         let st' = {st with pc_loc = pc_lst;
                            promote = Some (xf,yf);
@@ -852,7 +877,8 @@ let do' cmd st =
         in
         let pow = check_for_power (xf, yf) st' in
         let pow_state = use_power (xf, yf) pow st' in
-        let truth  = in_check pow_state.missing pow_state.pieces pow_state.pc_loc ncolor kloc in
+        let truth  = in_check pow_state.missing pow_state.pieces
+            pow_state.pc_loc ncolor kloc in
         let fin_state = {pow_state with check = color_in_check ncolor truth} in
         color_in_checkmate truth fin_state
     else
@@ -864,7 +890,8 @@ let do' cmd st =
       if List.mem_assoc (xf,yf) st.pc_loc then
         let cap = List.assoc (xf,yf) st.pc_loc in
         let pc_lst = ((xf,yf),new_pawn)::(st.pc_loc |>
-                                          List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf)) in
+                                          List.remove_assoc (xi,yi)
+                                          |> List.remove_assoc (xf,yf)) in
         let cap_lst = cap::st.captured in
         let kloc = if ncolor = Black then st.bking else st.wking in
         let st' = {st with pc_loc = pc_lst;
@@ -877,7 +904,8 @@ let do' cmd st =
         in
         let pow = check_for_power (xf, yf) st' in
         let pow_state = use_power (xf, yf) pow st' in
-        let truth  = in_check pow_state.missing pow_state.pieces pow_state.pc_loc ncolor kloc in
+        let truth  = in_check pow_state.missing pow_state.pieces
+            pow_state.pc_loc ncolor kloc in
         let fin_state = {pow_state with check = color_in_check ncolor truth;
                                         color = ncolor
                         } in
@@ -893,7 +921,8 @@ let do' cmd st =
         in
         let pow = check_for_power (xf, yf) st' in
         let pow_state = use_power (xf, yf) pow st' in
-        let truth  = in_check pow_state.missing pow_state.pieces pow_state.pc_loc ncolor kloc in
+        let truth  = in_check pow_state.missing pow_state.pieces
+            pow_state.pc_loc ncolor kloc in
         let fin_state = {pow_state with check = color_in_check ncolor truth;
                                         color = ncolor
                         } in
