@@ -305,10 +305,12 @@ let change_player () =
   match !current_state.color with
   | White -> (get_element "player-0")##style##backgroundColor <-
       Js.string "#fff9dd";
-      (get_element "player-1")##style##backgroundColor <- Js.string "none"
+    (get_element "player-1")##style##backgroundColor <-
+      Js.string "transparent"
   | Black -> (get_element "player-1")##style##backgroundColor <-
       Js.string "#fff9dd";
-      (get_element "player-0")##style##backgroundColor <- Js.string "none"
+    (get_element "player-0")##style##backgroundColor <-
+      Js.string "transparent"
 
 let draw_power _ =
   List.iter (fun ((c,r),_) ->
