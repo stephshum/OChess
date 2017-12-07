@@ -713,7 +713,6 @@ let do' cmd st =
         let kloc = if ncolor = Black then st.bking else st.wking in
         let pre_state = {st with pc_loc = pc_lst;
                                  captured = cap_lst;
-                                 color = ncolor;
                                  promote = None;
                                  turn = st.turn + 1;
                                  score = update_score cap st.score;
@@ -733,7 +732,9 @@ let do' cmd st =
         let pow = check_for_power (xf, yf) st' in
         let pow_state = use_power (xf, yf) pow st' in
         let truth  = in_check pow_state.missing pow_state.pieces pow_state.pc_loc ncolor kloc in
-        let fin_state = {pow_state with check = color_in_check ncolor truth} in
+        let fin_state = {pow_state with check = color_in_check ncolor truth;
+                                        color = ncolor
+                        } in
         color_in_checkmate truth fin_state
       else
         let pc_lst =
@@ -795,7 +796,6 @@ let do' cmd st =
         in
         let kloc = if ncolor = Black then st.bking else st.wking in
         let pre_st = {st with pc_loc = pc_lst;
-                              color = ncolor;
                               promote = None;
                               turn = st.turn + 1;
                               checkmate = None
@@ -813,7 +813,8 @@ let do' cmd st =
         let pow = check_for_power (xf, yf) st' in
         let pow_state = use_power (xf, yf) pow st' in
         let truth  = in_check pow_state.missing pow_state.pieces pow_state.pc_loc ncolor kloc in
-        let fin_state = {pow_state with check = color_in_check ncolor truth} in
+        let fin_state = {pow_state with color = ncolor;
+                                        check = color_in_check ncolor truth} in
         color_in_checkmate truth fin_state
     else if ((yf = st.trow && st.color = White)
              || (yf = st.brow && st.color = Black)) then
@@ -869,7 +870,6 @@ let do' cmd st =
         let kloc = if ncolor = Black then st.bking else st.wking in
         let st' = {st with pc_loc = pc_lst;
                            captured = cap_lst;
-                           color = ncolor;
                            promote = None;
                            turn = st.turn + 1;
                            score = update_score cap st.score;
@@ -879,14 +879,15 @@ let do' cmd st =
         let pow = check_for_power (xf, yf) st' in
         let pow_state = use_power (xf, yf) pow st' in
         let truth  = in_check pow_state.missing pow_state.pieces pow_state.pc_loc ncolor kloc in
-        let fin_state = {pow_state with check = color_in_check ncolor truth} in
+        let fin_state = {pow_state with check = color_in_check ncolor truth;
+                                        color = ncolor
+                        } in
         color_in_checkmate truth fin_state
       else
         let pc_lst = ((xf,yf),new_pawn)::(st.pc_loc|>List.remove_assoc (xi,yi))
         in
         let kloc = if ncolor = Black then st.bking else st.wking in
         let st' = {st with pc_loc = pc_lst;
-                           color = ncolor;
                            promote = None;
                            turn = st.turn + 1;
                            checkmate = None}
@@ -894,7 +895,9 @@ let do' cmd st =
         let pow = check_for_power (xf, yf) st' in
         let pow_state = use_power (xf, yf) pow st' in
         let truth  = in_check pow_state.missing pow_state.pieces pow_state.pc_loc ncolor kloc in
-        let fin_state = {pow_state with check = color_in_check ncolor truth} in
+        let fin_state = {pow_state with check = color_in_check ncolor truth;
+                                        color = ncolor
+                        } in
         color_in_checkmate truth fin_state
   in
   let pc_of_name name =
