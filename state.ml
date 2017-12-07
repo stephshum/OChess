@@ -1,6 +1,11 @@
 open Command
 open Models
 open Yojson.Basic.Util
+open Dom
+
+let window = Dom_html.window
+let document = window##document
+let handler = Dom_html.handler
 
 type state = {
   missing: position list;
@@ -448,6 +453,7 @@ let do' cmd st =
       let two_list2 = List.partition predic2 not_void in
       let (_, valid) = two_list2 in
       let new_pawns = List.map (fun x -> (x, {name = Pawn true; pcolor = c})) valid in
+      window##alert (Js.string "You landed on the Raise the Dead power-up!");
       {st with pc_loc = new_pawns@st.pc_loc;
                powvalid = List.remove_assoc (x,y) st.powvalid}
     in
@@ -462,6 +468,7 @@ let do' cmd st =
     let two_list = List.partition predic st.pc_loc in
     let (captured, updated) = two_list in
     let only_pieces = List.map snd captured in
+    window##alert (Js.string "You landed on the Elimination power-up!");
     {st with pc_loc = updated;
              captured = only_pieces@st.captured;
              powvalid = List.remove_assoc (x,y) st.powvalid}
@@ -482,6 +489,7 @@ let do' cmd st =
     let two_list2 = List.partition predic2 st.pc_loc in
     let (captured, updated) = two_list2 in
     let only_pieces = List.map snd captured in
+    window##alert (Js.string "You landed on the No Jumpers power-up!");
     {st with pc_loc = updated;
              captured = only_pieces@st.captured;
              powvalid = List.remove_assoc (x,y) st.powvalid}
@@ -490,7 +498,8 @@ let do' cmd st =
     let higherpow c =
       let my_pieces = List.filter (fun x -> (x.pcolor = c)) st.captured in
       if my_pieces = [] then
-        {st with powvalid = List.remove_assoc (x,y) st.powvalid}
+        (let _ = window##alert (Js.string "You landed on the Second Chance power-up! Sadly, you have no captured pieces, so your powerup is wasted.") in
+         {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
       let my_array = Array.of_list my_pieces in
       let my_len = Array.length my_array in
@@ -506,11 +515,13 @@ let do' cmd st =
       let new_place = (ran_spot, y) in
       if (List.mem_assoc new_place st.pc_loc) ||
          (List.mem new_place st.missing) then
-        st
+        (let _ = window##alert (Js.string "You landed on the Second Chance power-up! Sadly, luck is not in your favor, so your powerup is wasted.") in
+         {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
+        (let _ = window##alert (Js.string "You landed on the Second Chance power-up!") in
         {st with pc_loc = (new_place, chosen)::(st.pc_loc);
                  captured = new_cap;
-                 powvalid = List.remove_assoc (x,y) st.powvalid}
+                 powvalid = List.remove_assoc (x,y) st.powvalid})
     in
     if st.color = White then
       higherpow White
@@ -522,7 +533,9 @@ let do' cmd st =
       let my_pieces = List.filter (fun x ->
           let p = snd x in (p.pcolor = c) && p.name <> King true
                            && p.name <> King false) st.pc_loc in
-      if my_pieces = [] then {st with powvalid = List.remove_assoc (x,y) st.powvalid}
+      if my_pieces = [] then
+        (let _ = window##alert (Js.string "You landed on the Clone power-up! Sadly, you don't have anything to clone, so your powerup is wasted.") in
+         {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
       let my_array = Array.of_list my_pieces in
       let my_len = Array.length my_array in
@@ -532,10 +545,12 @@ let do' cmd st =
       let new_place = (ran_spot, y) in
       if (List.mem_assoc new_place st.pc_loc) ||
          (List.mem new_place st.missing) then
-        st
+        (let _ = window##alert (Js.string "You landed on the Clone power-up! Sadly, luck is not in your favor, so your powerup is wasted.") in
+         {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
+        (let _ = window##alert (Js.string "You landed on the Clone power-up!") in
         {st with pc_loc = (new_place, snd chosen)::(st.pc_loc);
-                 powvalid = List.remove_assoc (x,y) st.powvalid}
+                 powvalid = List.remove_assoc (x,y) st.powvalid})
     in
     if st.color = White then
       higherpow White
@@ -547,7 +562,9 @@ let do' cmd st =
       let my_pieces = List.filter (fun x ->
           let p = snd x in (p.pcolor = nc) && p.name <> King true
                            && p.name <> King false) st.pc_loc in
-      if my_pieces = [] then {st with powvalid = List.remove_assoc (x,y) st.powvalid}
+      if my_pieces = [] then
+        (let _ = window##alert (Js.string "You landed on the Mind Control power-up! Sadly, your opponent doesn't have enough pieces, so your powerup is wasted.") in
+         {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
       let my_array = Array.of_list my_pieces in
       let my_len = Array.length my_array in
@@ -558,10 +575,12 @@ let do' cmd st =
       let new_place = (ran_spot, y) in
       if (List.mem_assoc new_place st.pc_loc) ||
          (List.mem new_place st.missing) then
-        st
+        (let _ = window##alert (Js.string "You landed on the Mind Control power-up! Sadly, luck is not in your favor, so your powerup is wasted.") in
+         {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
+        (let _ = window##alert (Js.string "You landed on the Mind Control power-up!") in
         {st with pc_loc = (new_place, changed_piece)::(st.pc_loc);
-                 powvalid = List.remove_assoc (x,y) st.powvalid}
+                 powvalid = List.remove_assoc (x,y) st.powvalid})
     in
     if st.color = White then
       higherpow Black White
@@ -582,6 +601,7 @@ let do' cmd st =
     let two_list = List.partition predic st.pc_loc in
     let (captured, updated) = two_list in
     let only_pieces = List.map snd captured in
+    window##alert (Js.string "You landed on the Cult Murder powerup!");
     {st with pc_loc = updated;
              captured = only_pieces@st.captured;
              powvalid = List.remove_assoc (x,y) st.powvalid}
