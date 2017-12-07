@@ -229,8 +229,7 @@ let init_state j =
       wking = j |> member "wking" |> int_tuple_of_json;
       bking = j |> member "bking" |> int_tuple_of_json;
       powvalid = [((1,4), powerup_used1); ((1,7), powerup_used1);
-                  ((10,7), powerup_used2); ((10,4), powerup_used2);
-                 ]; (*TODO rewrite this*)
+                  ((10,7), powerup_used2); ((10,4), powerup_used2)];
       check = j |> member "check" |> check_of_json;
       checkmate = j |> member "promote" |> checkmate_of_json
     }
