@@ -166,7 +166,8 @@ let init_state j =
       wking = j |> member "wking" |> int_tuple_of_json;
       bking = j |> member "bking" |> int_tuple_of_json;
       powvalid = [((1,4), powerup_used1); ((1,7), powerup_used1);
-                  ((10,7), powerup_used2); ((10,4), powerup_used2) ]; (*TODO rewrite this*)
+                  ((10,7), powerup_used2); ((10,4), powerup_used2);
+                 ]; (*TODO rewrite this*)
       check = j |> member "check" |> check_of_json;
       checkmate = j |> member "promote" |> checkmate_of_json
     }
@@ -433,12 +434,9 @@ let do' cmd st =
     else
       st
   in
-  (* [check_for_power (xf, yf) st] will return [Some x] if there is a
-   * powerup associated with the positions, None otherwise*)
   let check_for_power (xf, yf) st =
     List.assoc_opt (xf, yf) st.powvalid
   in
-  (*Raise the Dead*)
   let pow0 (x,y) st =
     let higherpow l c =
       let poten = l in
@@ -450,25 +448,25 @@ let do' cmd st =
       let two_list2 = List.partition predic2 not_void in
       let (_, valid) = two_list2 in
       let new_pawns = List.map (fun x -> (x, {name = Pawn true; pcolor = c})) valid in
-      {st with pc_loc = new_pawns}
+      {st with pc_loc = new_pawns@st.pc_loc;
+               powvalid = List.remove_assoc (x,y) st.powvalid}
     in
     if (st.color = White) then
       higherpow [(x,y-1); (x+1, y-1); (x-1, y-1)] White
     else
       higherpow [(x,y+1); (x+1, y+1); (x-1, y+1)] Black
   in
-  (* Elimination*)
   let pow1 (x, y) st =
-    let predic p = (snd (fst p) = y && (snd p).name <> King true
+    let predic p = (fst (fst p) = x && (snd p).name <> King true
                     && (snd p).name <> King false) in
     let two_list = List.partition predic st.pc_loc in
     let (captured, updated) = two_list in
     let only_pieces = List.map snd captured in
     {st with pc_loc = updated;
-             captured = only_pieces@st.captured}
+             captured = only_pieces@st.captured;
+             powvalid = List.remove_assoc (x,y) st.powvalid}
   in
-  (* NoJumpers*)
-  let pow2 st =
+  let pow2 (x,y) st =
     let predic1 (p: (name * (move list))) =
       let lst = snd p in
       List.fold_left (fun acc m -> match m with
@@ -485,18 +483,18 @@ let do' cmd st =
     let (captured, updated) = two_list2 in
     let only_pieces = List.map snd captured in
     {st with pc_loc = updated;
-             captured = only_pieces@st.captured}
+             captured = only_pieces@st.captured;
+             powvalid = List.remove_assoc (x,y) st.powvalid}
   in
-  (*Second Chance
-    changes
-    same line as piece
-    random piece if ther randomly selected spot fits the criteria*)
   let pow3 (x, y) st =
     let higherpow c =
       let my_pieces = List.filter (fun x -> (x.pcolor = c)) st.captured in
+      if my_pieces = [] then
+        {st with powvalid = List.remove_assoc (x,y) st.powvalid}
+      else
       let my_array = Array.of_list my_pieces in
       let my_len = Array.length my_array in
-      let ran = Random.int (my_len - 1) in
+      let ran = Random.int (my_len) in
       let chosen = Array.get my_array ran in
       let rec rem lst acc a =
         match lst with
@@ -504,35 +502,40 @@ let do' cmd st =
         | [] -> acc
       in
       let new_cap = rem st.captured [] chosen in
-      let ran_spot = Random.int 11 in
-      if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
-         (List.mem (x, ran_spot) st.missing) then
+      let ran_spot = (Random.int 12) in
+      let new_place = (ran_spot, y) in
+      if (List.mem_assoc new_place st.pc_loc) ||
+         (List.mem new_place st.missing) then
         st
       else
-        {st with pc_loc = ((x, ran_spot), chosen)::(st.pc_loc);
-                 captured = new_cap}
+        {st with pc_loc = (new_place, chosen)::(st.pc_loc);
+                 captured = new_cap;
+                 powvalid = List.remove_assoc (x,y) st.powvalid}
     in
     if st.color = White then
       higherpow White
     else
       higherpow Black
   in
-  (*clone*)
   let pow4 (x,y) st =
     let higherpow c =
       let my_pieces = List.filter (fun x ->
           let p = snd x in (p.pcolor = c) && p.name <> King true
                            && p.name <> King false) st.pc_loc in
+      if my_pieces = [] then {st with powvalid = List.remove_assoc (x,y) st.powvalid}
+      else
       let my_array = Array.of_list my_pieces in
       let my_len = Array.length my_array in
-      let ran = Random.int (my_len - 1) in
+      let ran = Random.int my_len in
       let chosen = Array.get my_array ran in
-      let ran_spot = Random.int 11 in
-      if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
-         (List.mem (x, ran_spot) st.missing) then
+      let ran_spot = Random.int 12 in
+      let new_place = (ran_spot, y) in
+      if (List.mem_assoc new_place st.pc_loc) ||
+         (List.mem new_place st.missing) then
         st
       else
-        {st with pc_loc = ((x, ran_spot), snd chosen)::(st.pc_loc)}
+        {st with pc_loc = (new_place, snd chosen)::(st.pc_loc);
+                 powvalid = List.remove_assoc (x,y) st.powvalid}
     in
     if st.color = White then
       higherpow White
@@ -540,27 +543,31 @@ let do' cmd st =
       higherpow Black
   in
   let pow5 (x,y) st =
-    let higherpow nc =
+    let higherpow nc c=
       let my_pieces = List.filter (fun x ->
           let p = snd x in (p.pcolor = nc) && p.name <> King true
                            && p.name <> King false) st.pc_loc in
-        let my_array = Array.of_list my_pieces in
-        let my_len = Array.length my_array in
-        let ran = Random.int (my_len - 1) in
-        let chosen = Array.get my_array ran in
-        let ran_spot = Random.int 11 in
-        if (List.mem_assoc (x, ran_spot) st.pc_loc) ||
-           (List.mem (x, ran_spot) st.missing) then
-          st
-        else
-          {st with pc_loc = ((x, ran_spot), snd chosen)::(st.pc_loc)}
+      if my_pieces = [] then {st with powvalid = List.remove_assoc (x,y) st.powvalid}
+      else
+      let my_array = Array.of_list my_pieces in
+      let my_len = Array.length my_array in
+      let ran = Random.int my_len in
+      let chosen = Array.get my_array ran in
+      let changed_piece = {(snd chosen) with pcolor = c} in
+      let ran_spot = Random.int 12 in
+      let new_place = (ran_spot, y) in
+      if (List.mem_assoc new_place st.pc_loc) ||
+         (List.mem new_place st.missing) then
+        st
+      else
+        {st with pc_loc = (new_place, changed_piece)::(st.pc_loc);
+                 powvalid = List.remove_assoc (x,y) st.powvalid}
     in
     if st.color = White then
-      higherpow Black
+      higherpow Black White
     else
-      higherpow White
+      higherpow White Black
   in
-  (* CultMurder*)
   let pow6 (x, y) st =
     let surrounding_tent = [(x-1,y+1); (x+1,y-1);
                             (x+1,y);(x,y+1);(x+1,y+1);
@@ -576,23 +583,20 @@ let do' cmd st =
     let (captured, updated) = two_list in
     let only_pieces = List.map snd captured in
     {st with pc_loc = updated;
-             captured = only_pieces@st.captured}
-    (* [use_power pow st] will return an updated state with changes enacted
-     * as described in "powerup_ideas.txt" if [pow] is [Some x]. If
-     * [pow] is [None],st will remain the same
-     * *)
+             captured = only_pieces@st.captured;
+             powvalid = List.remove_assoc (x,y) st.powvalid}
   in
   let use_power loc pow st =
      match pow with
      | Some x -> begin
         match x with
-        | RaisetheDead -> print_int 0; pow0 loc st
-        | Elimination -> print_int 1;pow1 loc st
-        | NoJumpers -> print_int 2;pow2 st
-        | SecondChance -> print_int 3;pow3 loc st
-        | Clone -> print_int 4;pow4 loc st
-        | MindControl -> print_int 5;pow5 loc st
-        | CultMurder -> print_int 6;pow6 loc st
+        | RaisetheDead -> pow0 loc st
+        | Elimination -> pow1 loc st
+        | NoJumpers -> pow2 loc st
+        | SecondChance -> pow3 loc st
+        | Clone -> pow4 loc st
+        | MindControl -> pow5 loc st
+        | CultMurder -> pow6 loc st
      end
      | None -> st
      in
