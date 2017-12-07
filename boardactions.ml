@@ -168,7 +168,8 @@ let get_diag l =
 let get_image u =
   String.(sub u 12 (length u - 18))
 
-(* [get_model i] is the name of the piece with image [i] *)
+(* [get_model n] is the name of the piece with image [n]
+ * requires: [n] is a string *)
 let get_model n =
   let n' = String.(sub n 2 (length n - 2)) in
   match n' with
@@ -218,8 +219,14 @@ let rec highlight_moves () =
   let moves = State.val_move_lst !piece_loc !current_state in
   List.iter highlight_sq moves
 
-(* [piece_helper r c e b] is the helper function for handle_square
- * during the custom piece stage *)
+(*
+ * [piece_helper r c e b] is the helper function for handle_square
+ * during the custom piece stage
+ * requires:
+ *  - [r] and [c] are ints
+ *  - [sq] is a Dom_html element
+ *  - [b] is of type Js.js_string Js.st for a color
+ *)
 let piece_helper r c sq b =
   let d = (r-6,c-6) in
   let p =
@@ -250,13 +257,18 @@ let draw_board_init () =
       (get_square r c)##style##backgroundColor <- Js.string "#a8a8a8")
     [(1,4);(1,7);(10,7);(10,4)]
 
-(* [board_helper r c e] is the helper function for handle_square
- * during the custom board stage *)
+(*
+ * [board_helper r c e] is the helper function for handle_square
+ * during the custom board stage
+ * requires:
+ *  - [r] and [c] are ints
+ *  - [sq] is a Dom_html element
+ *)
 let board_helper r c sq =
   let m = (11-r, c) in
   if !chosen_image = "none" then (
     if not (List.fold_left
-    (fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
+              (fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
       if not (List.mem (r,c) !void_squares) then (
         void_squares := m::(r,c)::(!void_squares);
         active_squares := List.filter (fun x -> x <> (r,c) && (x <> m))
@@ -272,14 +284,14 @@ let board_helper r c sq =
   )
   else (
     if List.mem (r,c) !active_squares && not (List.fold_left
-    (fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
+                                                (fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
       let im_w = !chosen_image in
       let im_b = String.((sub im_w 0 12)^"b"^(sub im_w 13 (length im_w-13))) in
       init_pieces := (im_w,(r,c))::(im_b,(11-r,c))::(!init_pieces);
       draw_board_init ()
     )
     else if (List.fold_left (
-      fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
+        fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
       init_pieces := List.filter (fun (_,x)->x <> (r,c)&&(x <> m)) !init_pieces;
       draw_board_init ()
     ))
@@ -331,8 +343,14 @@ let draw_board () =
   change_score ();
   check_mate ()
 
-(* [play_helper r c sq b] is the helper function for handle_square
- * during the play stage *)
+(*
+ * [play_helper r c sq b] is the helper function for handle_square
+ * during the play stage
+ * requires:
+ *  - [r] and [c] are ints
+ *  - [sq] is a Dom_html element
+ *  - [b] is of type Js.js_string Js.st for a color
+ *)
 let play_helper r c sq b =
   match (!current_state).promote with
   | None ->
@@ -374,7 +392,9 @@ let play_helper r c sq b =
     end
 
 (* [handle_square r c _] is the callback for a square on the board at row [r]
- * and column [c] *)
+ * and column [c]
+ * requires:
+ *  - [r] and [c] are ints *)
 let handle_square r c _ =
   let sq = get_square r c in
   let b = sq##style##backgroundColor in
@@ -388,14 +408,17 @@ let handle_square r c _ =
   Js._false
 
 (* [square_callbacks l] registers callbacks for clicks on active board squares
- * listed in [l] *)
+ * listed in [l]
+ * requires: [l] is a list of int * int pairs for coordinates *)
 let rec square_callbacks l =
   match l with
   | [] -> ()
   | (r,c)::t -> (get_square r c)##onclick <- handler (handle_square r c);
     square_callbacks t
 
-      (*TODO*)
+(* [promote_helper n] is a helper function for handle pic for when a player
+ * chooses a piece to promote too
+ * requires: [n] is a string *)
 let promote_helper n =
   let name = get_model n in
   match name with
@@ -422,7 +445,8 @@ let handle_pic h e _ =
   end;
   Js._false
 
-(* [pic_callbacks l] registers callbacks for clicks on images of pieces *)
+(* [pic_callbacks l] registers callbacks for clicks on images of pieces
+ * requires: [l] is a list of strings for chess piece images *)
 let rec pic_callbacks l =
   match l with
   | [] -> ()
@@ -460,10 +484,14 @@ let handle_makeboard _ =
   highlighted := [];
   window##alert (Js.string "You are now customizing your board. Click to turn
   squares into voids, and finally move WHITE pieces on to the board. You must \
-  place a king on the board!");
+                            place a king on the board!");
   Js._false
 
-(* [pieces_string x s] is the string of pieces and their starting positions *)
+(* [pieces_string x s] is the string of pieces and their starting positions.
+ * It is a helper function for creating the JSON string of initial pieces below.
+ * requires:
+ *  - [x] is a list of pairs containing a string and an int pair
+ *  - [s] is a string accumulator *)
 let rec pieces_string x s =
   begin
     match x with
@@ -474,8 +502,8 @@ let rec pieces_string x s =
       let x = String.(length w - 2 |> sub w 2 |> capitalize_ascii) in
       let name = if x = "Custom" then "custom" else x in
       pieces_string t (s^"{\"piece\":{\"name\":\"" ^ name ^ "\",\"color\":\"" ^
-      p ^ "\"},\"position\":\"(" ^ (string_of_int c) ^ "," ^ (string_of_int r) ^
-      ")\"},")
+                       p ^ "\"},\"position\":\"(" ^ (string_of_int c) ^ "," ^ (string_of_int r) ^
+                       ")\"},")
   end
 
 (* [create_json ()] creates a JSON string for the initial state of the game *)
