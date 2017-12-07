@@ -253,7 +253,6 @@ let draw_board_init () =
 (* [board_helper r c e] is the helper function for handle_square
  * during the custom board stage *)
 let board_helper r c sq =
-  window##alert (Js.string "test");
   let m = (11-r, c) in
   if !chosen_image = "none" then (
     if not (List.fold_left
@@ -306,9 +305,11 @@ let check_mate () =
 let change_player () =
   match !current_state.color with
   | White -> (get_element "player-0")##style##backgroundColor <-
-      Js.string "#fff9dd"
+      Js.string "#fff9dd";
+      (get_element "player-1")##style##backgroundColor <- Js.string "none"
   | Black -> (get_element "player-1")##style##backgroundColor <-
-      Js.string "#fff9dd"
+      Js.string "#fff9dd";
+      (get_element "player-0")##style##backgroundColor <- Js.string "none"
 
 let draw_power _ =
   List.iter (fun ((c,r),_) ->
@@ -519,7 +520,6 @@ let create_json () =
           (string_of_int (fst k')) ^ ")\"," in
   let l = " \"check\": \"None\", \"checkmate\": \"None\"}" in
   let json = a^b^c^d^e^f^g^h^i^j^k^l in
-  window##alert (Js.string json);
   Yojson.Basic.from_string json
 
 (* [handle_play _] is the callback for the start game button *)
