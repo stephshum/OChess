@@ -284,7 +284,6 @@ let board_helper r c sq =
       draw_board_init ()
     ))
 
-
 (* [change_score ()] changes the score on the screen according to state *)
 let change_score () =
   (get_element "score-0")##innerHTML <- Js.string
