@@ -82,32 +82,32 @@ let init_state j =
     match (find_neg1, find_neg2) with
     | (Some n, Some i) -> begin
         if (n <> i) then begin
-            if len = 9
-            then
-              higher1 str 2 3 6 7 (~-) (~-)
-            else if len = 7
-            then
-              higher2 str 2 5 (~-) (~-)
-            else if ((String.get str 3) = ',')
-            then
-              higher3 str 2 5 6 (~-) (~-)
-            else
-              higher4 str 2 3 6 (~-) (~-)
-          end
-          else if (n = 1) then begin
-            if len = 8
-            then
-              higher1 str 2 3 5 6 (~-) (~+)
-            else if len = 6
-            then
-              higher2 str 2 4 (~-) (~+)
-            else if ((String.get str 3) = ',')
-            then
-              higher3 str 2 4 5 (~-) (~+)
-            else
-              higher4 str 2 3 5  (~-) (~+)
-          end
-          else begin
+          if len = 9
+          then
+            higher1 str 2 3 6 7 (~-) (~-)
+          else if len = 7
+          then
+            higher2 str 2 5 (~-) (~-)
+          else if ((String.get str 3) = ',')
+          then
+            higher3 str 2 5 6 (~-) (~-)
+          else
+            higher4 str 2 3 6 (~-) (~-)
+        end
+        else if (n = 1) then begin
+          if len = 8
+          then
+            higher1 str 2 3 5 6 (~-) (~+)
+          else if len = 6
+          then
+            higher2 str 2 4 (~-) (~+)
+          else if ((String.get str 3) = ',')
+          then
+            higher3 str 2 4 5 (~-) (~+)
+          else
+            higher4 str 2 3 5  (~-) (~+)
+        end
+        else begin
           if len = 8
           then
             higher1 str 1 2 5 6 (~+) (~-)
@@ -120,7 +120,7 @@ let init_state j =
           else
             higher4 str 1 2 5 (~+) (~-)
         end
-    end
+      end
     | (None, None) ->
       if len = 7
       then
@@ -168,10 +168,10 @@ let init_state j =
     (name,pattern)
   in
   let piece_of_json j =
-  {
-    name = j |> member "name" |> name_of_json;
-    pcolor = j |> member "color" |> color_of_json;
-  }
+    {
+      name = j |> member "name" |> name_of_json;
+      pcolor = j |> member "color" |> color_of_json;
+    }
   in
   let pc_loc_of_json j =
     let piece = j |> member "piece" |> piece_of_json in
@@ -190,30 +190,6 @@ let init_state j =
     else if s = "Black" then Some Black
     else Some White
   in
-  let powerup_used1 =
-    let num = Random.int 6 in
-    match num with
-    | 0 -> RaisetheDead
-    | 1 -> Elimination
-    | 2 -> NoJumpers
-    | 3 -> SecondChance
-    | 4 -> Clone
-    | 5 -> MindControl
-    | 6 -> CultMurder
-    | _ -> failwith "oops"
-  in
-  let powerup_used2 =
-    let num = Random.int 6 in
-    match num with
-    | 0 -> RaisetheDead
-    | 1 -> Elimination
-    | 2 -> NoJumpers
-    | 3 -> SecondChance
-    | 4 -> Clone
-    | 5 -> MindControl
-    | 6 -> CultMurder
-    | _ -> failwith "oops"
-  in
   let rcd =
     {
       missing = j |> member "missing" |> to_list |> List.map int_tuple_of_json;
@@ -228,8 +204,13 @@ let init_state j =
       score = j |> member "score" |> int_tuple_of_json;
       wking = j |> member "wking" |> int_tuple_of_json;
       bking = j |> member "bking" |> int_tuple_of_json;
-      powvalid = [((1,4), powerup_used1); ((1,7), powerup_used1);
-                  ((10,7), powerup_used2); ((10,4), powerup_used2)];
+      powvalid = [((0,0),RaisetheDead);((0,11), RaisetheDead);
+                  ((1,4),Elimination);((1,7), Elimination);
+                  ((2,1), NoJumpers); ((2,10), NoJumpers);
+                  ((4,0), SecondChance); ((4,11), SecondChance);
+                  ((6,1), Clone); ((6,10), Clone);
+                  ((9,1), MindControl); ((9,10), MindControl);
+                  ((11,3), CultMurder); ((11,8), CultMurder);];
       check = j |> member "check" |> check_of_json;
       checkmate = j |> member "promote" |> checkmate_of_json
     }
@@ -561,31 +542,31 @@ let do' cmd st =
           so your powerup is wasted.") in
          {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
-      let my_array = Array.of_list my_pieces in
-      let my_len = Array.length my_array in
-      let ran = Random.int (my_len) in
-      let chosen = Array.get my_array ran in
-      let rec rem lst acc a =
-        match lst with
-        | x::xs -> if x = a then acc@xs else rem xs (x::acc) a
-        | [] -> acc
-      in
-      let new_cap = rem st.captured [] chosen in
-      let ran_spot = (Random.int 12) in
-      let new_place = (ran_spot, y) in
-      if (List.mem_assoc new_place st.pc_loc) ||
-         (List.mem new_place st.missing) then
-        (let _ = window##alert (Js.string ("You landed on the Second Chance "^
-                                           "power-up! Sadly, luck is not in "^
-                                           "your favor, so your powerup is "^
-                                           "wasted.")) in
-         {st with powvalid = List.remove_assoc (x,y) st.powvalid})
-      else
-        (let _ = window##alert (Js.string ("You landed on the Second Chance "^
-                                           "power-up!")) in
-        {st with pc_loc = (new_place, chosen)::(st.pc_loc);
-                 captured = new_cap;
-                 powvalid = List.remove_assoc (x,y) st.powvalid})
+        let my_array = Array.of_list my_pieces in
+        let my_len = Array.length my_array in
+        let ran = Random.int (my_len) in
+        let chosen = Array.get my_array ran in
+        let rec rem lst acc a =
+          match lst with
+          | x::xs -> if x = a then acc@xs else rem xs (x::acc) a
+          | [] -> acc
+        in
+        let new_cap = rem st.captured [] chosen in
+        let ran_spot = (Random.int 12) in
+        let new_place = (ran_spot, y) in
+        if (List.mem_assoc new_place st.pc_loc) ||
+           (List.mem new_place st.missing) then
+          (let _ = window##alert (Js.string ("You landed on the Second Chance "^
+                                             "power-up! Sadly, luck is not in "^
+                                             "your favor, so your powerup is "^
+                                             "wasted.")) in
+           {st with powvalid = List.remove_assoc (x,y) st.powvalid})
+        else
+          (let _ = window##alert (Js.string ("You landed on the Second Chance "^
+                                             "power-up!")) in
+           {st with pc_loc = (new_place, chosen)::(st.pc_loc);
+                    captured = new_cap;
+                    powvalid = List.remove_assoc (x,y) st.powvalid})
     in
     if st.color = White then
       higherpow White
@@ -604,23 +585,23 @@ let do' cmd st =
          in
          {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
-      let my_array = Array.of_list my_pieces in
-      let my_len = Array.length my_array in
-      let ran = Random.int my_len in
-      let chosen = Array.get my_array ran in
-      let ran_spot = Random.int 12 in
-      let new_place = (ran_spot, y) in
-      if (List.mem_assoc new_place st.pc_loc) ||
-         (List.mem new_place st.missing) then
-        (let _ = window##alert (Js.string ("You landed on the Clone power-up! "^
-                                           "Sadly, luck is not in your favor, "^
-                                           "so your powerup is wasted.")) in
-         {st with powvalid = List.remove_assoc (x,y) st.powvalid})
-      else
-        (let _ = window##alert (Js.string "You landed on the Clone power-up!")
-         in
-        {st with pc_loc = (new_place, snd chosen)::(st.pc_loc);
-                 powvalid = List.remove_assoc (x,y) st.powvalid})
+        let my_array = Array.of_list my_pieces in
+        let my_len = Array.length my_array in
+        let ran = Random.int my_len in
+        let chosen = Array.get my_array ran in
+        let ran_spot = Random.int 12 in
+        let new_place = (ran_spot, y) in
+        if (List.mem_assoc new_place st.pc_loc) ||
+           (List.mem new_place st.missing) then
+          (let _ = window##alert (Js.string ("You landed on the Clone power-up! "^
+                                             "Sadly, luck is not in your favor, "^
+                                             "so your powerup is wasted.")) in
+           {st with powvalid = List.remove_assoc (x,y) st.powvalid})
+        else
+          (let _ = window##alert (Js.string "You landed on the Clone power-up!")
+           in
+           {st with pc_loc = (new_place, snd chosen)::(st.pc_loc);
+                    powvalid = List.remove_assoc (x,y) st.powvalid})
     in
     if st.color = White then
       higherpow White
@@ -639,25 +620,25 @@ let do' cmd st =
                                            "your powerup is wasted.")) in
          {st with powvalid = List.remove_assoc (x,y) st.powvalid})
       else
-      let my_array = Array.of_list my_pieces in
-      let my_len = Array.length my_array in
-      let ran = Random.int my_len in
-      let chosen = Array.get my_array ran in
-      let changed_piece = {(snd chosen) with pcolor = c} in
-      let ran_spot = Random.int 12 in
-      let new_place = (ran_spot, y) in
-      if (List.mem_assoc new_place st.pc_loc) ||
-         (List.mem new_place st.missing) then
-        (let _ = window##alert (Js.string ("You landed on the Mind Control "^
-                                           "power-up! Sadly, luck is not in "^
-                                           "your favor, so your powerup is "^
-                                           "wasted.")) in
-         {st with powvalid = List.remove_assoc (x,y) st.powvalid})
-      else
-        (let _ = window##alert (Js.string ("You landed on the Mind Control "^
-                                           "power-up!")) in
-        {st with pc_loc = (new_place, changed_piece)::(st.pc_loc);
-                 powvalid = List.remove_assoc (x,y) st.powvalid})
+        let my_array = Array.of_list my_pieces in
+        let my_len = Array.length my_array in
+        let ran = Random.int my_len in
+        let chosen = Array.get my_array ran in
+        let changed_piece = {(snd chosen) with pcolor = c} in
+        let ran_spot = Random.int 12 in
+        let new_place = (ran_spot, y) in
+        if (List.mem_assoc new_place st.pc_loc) ||
+           (List.mem new_place st.missing) then
+          (let _ = window##alert (Js.string ("You landed on the Mind Control "^
+                                             "power-up! Sadly, luck is not in "^
+                                             "your favor, so your powerup is "^
+                                             "wasted.")) in
+           {st with powvalid = List.remove_assoc (x,y) st.powvalid})
+        else
+          (let _ = window##alert (Js.string ("You landed on the Mind Control "^
+                                             "power-up!")) in
+           {st with pc_loc = (new_place, changed_piece)::(st.pc_loc);
+                    powvalid = List.remove_assoc (x,y) st.powvalid})
     in
     if st.color = White then
       higherpow Black White
@@ -684,8 +665,8 @@ let do' cmd st =
              powvalid = List.remove_assoc (x,y) st.powvalid}
   in
   let use_power loc pow st =
-     match pow with
-     | Some x -> begin
+    match pow with
+    | Some x -> begin
         match x with
         | RaisetheDead -> pow0 loc st
         | Elimination -> pow1 loc st
@@ -694,9 +675,9 @@ let do' cmd st =
         | Clone -> pow4 loc st
         | MindControl -> pow5 loc st
         | CultMurder -> pow6 loc st
-     end
-     | None -> st
-     in
+      end
+    | None -> st
+  in
   let mv (xi,yi) (xf,yf) =
     let pc = List.assoc (xi,yi) st.pc_loc in
     let ncolor = if st.color = Black then White else Black in
@@ -713,7 +694,7 @@ let do' cmd st =
               }
               in
               ((xf,yf),new_king)::(st.pc_loc |>
-              List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf))
+                                   List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf))
             end
           | Rook _ ->
             begin
@@ -723,10 +704,10 @@ let do' cmd st =
               }
               in
               ((xf,yf),new_rook)::(st.pc_loc |>
-              List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf))
+                                   List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf))
             end
           | _ -> ((xf,yf),pc)::(st.pc_loc |>
-              List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf))
+                                List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf))
         in
         let cap_lst = cap::st.captured in
         let kloc = if ncolor = Black then st.bking else st.wking in
@@ -774,7 +755,7 @@ let do' cmd st =
                   }
                   in
                   ((xf,yf),new_king)::((xi-1,yi),rk)::(st.pc_loc|>
-                    List.remove_assoc (xi,yi)|>List.remove_assoc (xi-3,yi))
+                                                       List.remove_assoc (xi,yi)|>List.remove_assoc (xi-3,yi))
                 else
                   let rk = {
                     name = Rook false;
@@ -782,7 +763,7 @@ let do' cmd st =
                   }
                   in
                   ((xf,yf),new_king)::((xi-1,yi),rk)::(st.pc_loc|>
-                    List.remove_assoc (xi,yi)|>List.remove_assoc (xi-4,yi))
+                                                       List.remove_assoc (xi,yi)|>List.remove_assoc (xi-4,yi))
               else if xf = xi+2 then
                 if List.mem_assoc (xi+3,yi) st.pc_loc then
                   let rk = {
@@ -791,7 +772,7 @@ let do' cmd st =
                   }
                   in
                   ((xf,yf),new_king)::((xi+1,yi),rk)::(st.pc_loc|>
-                    List.remove_assoc (xi,yi)|>List.remove_assoc (xi+3,yi))
+                                                       List.remove_assoc (xi,yi)|>List.remove_assoc (xi+3,yi))
                 else
                   let rk = {
                     name = Rook false;
@@ -799,7 +780,7 @@ let do' cmd st =
                   }
                   in
                   ((xf,yf),new_king)::((xi+1,yi),rk)::(st.pc_loc|>
-                    List.remove_assoc (xi,yi)|>List.remove_assoc (xi+4,yi))
+                                                       List.remove_assoc (xi,yi)|>List.remove_assoc (xi+4,yi))
               else
                 ((xf,yf),new_king)::(st.pc_loc|>List.remove_assoc (xi,yi))
             end
