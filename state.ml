@@ -593,9 +593,10 @@ let do' cmd st =
         let new_place = (ran_spot, y) in
         if (List.mem_assoc new_place st.pc_loc) ||
            (List.mem new_place st.missing) then
-          (let _ = window##alert (Js.string ("You landed on the Clone power-up! "^
-                                             "Sadly, luck is not in your favor, "^
-                                             "so your powerup is wasted.")) in
+          (let _ = window##alert (Js.string ("You landed on the Clone power-up"^
+                                             "! Sadly, luck is not in your "^
+                                             "favor, so your powerup is "^
+                                             "wasted.")) in
            {st with powvalid = List.remove_assoc (x,y) st.powvalid})
         else
           (let _ = window##alert (Js.string "You landed on the Clone power-up!")
@@ -694,7 +695,8 @@ let do' cmd st =
               }
               in
               ((xf,yf),new_king)::(st.pc_loc |>
-                                   List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf))
+                                   List.remove_assoc (xi,yi)
+                                   |> List.remove_assoc (xf,yf))
             end
           | Rook _ ->
             begin
@@ -704,10 +706,12 @@ let do' cmd st =
               }
               in
               ((xf,yf),new_rook)::(st.pc_loc |>
-                                   List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf))
+                                   List.remove_assoc (xi,yi)
+                                   |> List.remove_assoc (xf,yf))
             end
           | _ -> ((xf,yf),pc)::(st.pc_loc |>
-                                List.remove_assoc (xi,yi) |> List.remove_assoc (xf,yf))
+                                List.remove_assoc (xi,yi)
+                                |> List.remove_assoc (xf,yf))
         in
         let cap_lst = cap::st.captured in
         let kloc = if ncolor = Black then st.bking else st.wking in
@@ -754,16 +758,20 @@ let do' cmd st =
                     pcolor = pc.pcolor
                   }
                   in
-                  ((xf,yf),new_king)::((xi-1,yi),rk)::(st.pc_loc|>
-                                                       List.remove_assoc (xi,yi)|>List.remove_assoc (xi-3,yi))
+                  ((xf,yf),new_king)::((xi-1,yi),rk)::
+                  (st.pc_loc
+                   |>List.remove_assoc (xi,yi)
+                   |>List.remove_assoc (xi-3,yi))
                 else
                   let rk = {
                     name = Rook false;
                     pcolor = pc.pcolor
                   }
                   in
-                  ((xf,yf),new_king)::((xi-1,yi),rk)::(st.pc_loc|>
-                                                       List.remove_assoc (xi,yi)|>List.remove_assoc (xi-4,yi))
+                  ((xf,yf),new_king)::((xi-1,yi),rk)::
+                  (st.pc_loc
+                   |>List.remove_assoc (xi,yi)
+                   |>List.remove_assoc (xi-4,yi))
               else if xf = xi+2 then
                 if List.mem_assoc (xi+3,yi) st.pc_loc then
                   let rk = {
@@ -771,16 +779,20 @@ let do' cmd st =
                     pcolor = pc.pcolor
                   }
                   in
-                  ((xf,yf),new_king)::((xi+1,yi),rk)::(st.pc_loc|>
-                                                       List.remove_assoc (xi,yi)|>List.remove_assoc (xi+3,yi))
+                  ((xf,yf),new_king)::((xi+1,yi),rk)::
+                  (st.pc_loc
+                   |>List.remove_assoc (xi,yi)
+                   |>List.remove_assoc (xi+3,yi))
                 else
                   let rk = {
                     name = Rook false;
                     pcolor = pc.pcolor
                   }
                   in
-                  ((xf,yf),new_king)::((xi+1,yi),rk)::(st.pc_loc|>
-                                                       List.remove_assoc (xi,yi)|>List.remove_assoc (xi+4,yi))
+                  ((xf,yf),new_king)::((xi+1,yi),rk)::
+                  (st.pc_loc
+                   |>List.remove_assoc (xi,yi)
+                   |>List.remove_assoc (xi+4,yi))
               else
                 ((xf,yf),new_king)::(st.pc_loc|>List.remove_assoc (xi,yi))
             end
