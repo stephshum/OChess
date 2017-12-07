@@ -2,13 +2,6 @@ open Command
 open Models
 open Yojson.Basic.Util
 
-open Dom
-
-(* shorthand for Dom_html properties and objects *)
-let window = Dom_html.window
-let document = window##document
-let handler = Dom_html.handler
-
 type state = {
   missing: position list;
   pieces: (name * (move list)) list;
@@ -113,7 +106,6 @@ let init_state j =
     (name,pattern)
   in
   let piece_of_json j =
-    window##alert (Js.string "This beginning of piece");
   {
     name = j |> member "name" |> name_of_json;
     pcolor = j |> member "color" |> color_of_json;
@@ -180,7 +172,6 @@ let init_state j =
       checkmate = j |> member "promote" |> checkmate_of_json
     }
   in
-  window##alert (Js.string "final stretch");
   rcd
 
 (* [in_check miss pcs clr kloc] true if [clr] king is in check
