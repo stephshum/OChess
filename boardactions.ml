@@ -319,6 +319,14 @@ let check_mate () =
   | Some Black -> window##alert (Js.string "White has won!")
   | None -> ()
 
+(* [change_player ()] changes background color of the current player score*)
+let change_player () =
+  match !current_state.color with
+  | White -> (get_element "player-0")##style##backgroundColor <-
+      Js.string #fff9dd
+  | Black -> (get_element "player-1")##style##backgroundColor <-
+      Js.string #fff9dd
+
 (* [play_helper r c sq b] is the helper function for handle_square
  * during the play stage *)
 let play_helper r c sq b =
@@ -346,6 +354,7 @@ let play_helper r c sq b =
             if List.mem (c,r) moves then (
               current_state := State.do' (Move (!piece_loc,(c,r))) !current_state;
               draw_board ();
+              change_player ();
               x##style##backgroundImage <- (Js.string "none");
               sq##style##backgroundImage <- img;
               chosen_piece := None;
