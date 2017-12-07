@@ -160,8 +160,7 @@ let get_image u =
   String.(sub u 12 (length u - 18))
 
 (* [get_model i] is the name of the piece with image [i] *)
-let get_model i =
-  let n = i |> Js.to_string |> get_image in
+let get_model n =
   let n' = String.(sub n 2 (length n - 2)) in
   match n' with
   | "pawn" -> Pawn true
@@ -169,9 +168,9 @@ let get_model i =
   | "knight" -> Knight
   | "bishop" -> Bishop
   | "queen" -> Queen
-  | "king" -> King true
+  | "king" -> King false
   | "custom" -> Custom "custom"
-  | _ -> failwith "Impossible"
+  | _ -> failwith "None"
 
 (* [make_void e] makes the square for element [e] a void color *)
 let make_void e =
@@ -326,7 +325,10 @@ let play_helper r c sq b =
             let moves = State.val_move_lst !piece_loc !current_state in
             if List.mem (c,r) moves then (
               current_state := State.do' (Move (!piece_loc,(c,r))) !current_state;
-              draw_board ()))
+              draw_board ())
+            else
+              draw_board ()
+          )
         end
     end
   | Some pos ->
@@ -356,6 +358,20 @@ let rec square_callbacks l =
   | (r,c)::t -> (get_square r c)##onclick <- handler (handle_square r c);
     square_callbacks t
 
+      (*TODO*)
+let promote_helper n =
+  window##alert (Js.string n);
+  let name = get_model n in
+  window##alert (Js.string "name");
+  match name with
+  | King _ -> window##alert (Js.string "Cannot promote to King")
+  | Pawn _ -> window##alert (Js.string "Cannot promote to Pawn")
+  | n ->
+    begin
+      current_state := State.do' (Promotion n) !current_state;
+      draw_board ()
+    end
+
 (* [handle_pic h e _] is the callback for an image of a piece *)
 let handle_pic h e _ =
   begin
@@ -366,7 +382,7 @@ let handle_pic h e _ =
           (get_element n)##style##backgroundColor <- (Js.string "transparent")));
       chosen_image := "url('images/" ^ h ^ ".png')";
       e##style##backgroundColor <- (Js.string "#2d5475");
-    | Play -> () (* TODO handle promote *)
+    | Play -> promote_helper h
     | _ -> ()
   end;
   Js._false
