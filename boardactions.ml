@@ -39,23 +39,22 @@ let current_state : State.state ref = ref {
 (* [active_squares] is the list of squares on the board that are not void
  * denoted by a pair with row number and column number *)
 let active_squares : ((int * int) list) ref = ref
-    [
-      (0,0);(0,1);(0,2);(0,3);(0,4);(0,5);(0,6);(0,7);(0,8);(0,9);(0,10);(0,11);
-      (1,0);(1,1);(1,2);(1,3);(1,4);(1,5);(1,6);(1,7);(1,8);(1,9);(1,10);(1,11);
-      (2,0);(2,1);(2,2);(2,3);(2,4);(2,5);(2,6);(2,7);(2,8);(2,9);(2,10);(2,11);
-      (3,0);(3,1);(3,2);(3,3);(3,4);(3,5);(3,6);(3,7);(3,8);(3,9);(3,10);(3,11);
-      (4,0);(4,1);(4,2);(4,3);(4,4);(4,5);(4,6);(4,7);(4,8);(4,9);(4,10);(4,11);
-      (5,0);(5,1);(5,2);(5,3);(5,4);(5,5);(5,6);(5,7);(5,8);(5,9);(5,10);(5,11);
-      (6,0);(6,1);(6,2);(6,3);(6,4);(6,5);(6,6);(6,7);(6,8);(6,9);(6,10);(6,11);
-      (7,0);(7,1);(7,2);(7,3);(7,4);(7,5);(7,6);(7,7);(7,8);(7,9);(7,10);(7,11);
-      (8,0);(8,1);(8,2);(8,3);(8,4);(8,5);(8,6);(8,7);(8,8);(8,9);(8,10);(8,11);
-      (9,0);(9,1);(9,2);(9,3);(9,4);(9,5);(9,6);(9,7);(9,8);(9,9);(9,10);(9,11);
-      (10,0);(10,1);(10,2);(10,3);(10,4);(10,5);(10,6);(10,7);(10,8);(10,9);
-      (10,10);(10,11);
-      (11,0);(11,1);(11,2);(11,3);(11,4);(11,5);(11,6);(11,7);(11,8);(11,9);
-      (11,10);(11,11)
-    ]
-
+  [
+    (0,0);(0,1);(0,2);(0,3);(0,4);(0,5);(0,6);(0,7);(0,8);(0,9);(0,10);(0,11);
+    (1,0);(1,1);(1,2);(1,3);(1,4);(1,5);(1,6);(1,7);(1,8);(1,9);(1,10);(1,11);
+    (2,0);(2,1);(2,2);(2,3);(2,4);(2,5);(2,6);(2,7);(2,8);(2,9);(2,10);(2,11);
+    (3,0);(3,1);(3,2);(3,3);(3,4);(3,5);(3,6);(3,7);(3,8);(3,9);(3,10);(3,11);
+    (4,0);(4,1);(4,2);(4,3);(4,4);(4,5);(4,6);(4,7);(4,8);(4,9);(4,10);(4,11);
+    (5,0);(5,1);(5,2);(5,3);(5,4);(5,5);(5,6);(5,7);(5,8);(5,9);(5,10);(5,11);
+    (6,0);(6,1);(6,2);(6,3);(6,4);(6,5);(6,6);(6,7);(6,8);(6,9);(6,10);(6,11);
+    (7,0);(7,1);(7,2);(7,3);(7,4);(7,5);(7,6);(7,7);(7,8);(7,9);(7,10);(7,11);
+    (8,0);(8,1);(8,2);(8,3);(8,4);(8,5);(8,6);(8,7);(8,8);(8,9);(8,10);(8,11);
+    (9,0);(9,1);(9,2);(9,3);(9,4);(9,5);(9,6);(9,7);(9,8);(9,9);(9,10);(9,11);
+    (10,0);(10,1);(10,2);(10,3);(10,4);(10,5);(10,6);(10,7);(10,8);(10,9);
+    (10,10);(10,11);
+    (11,0);(11,1);(11,2);(11,3);(11,4);(11,5);(11,6);(11,7);(11,8);(11,9);
+    (11,10);(11,11)
+  ]
 
 (* [og] is the original chess board colors associated to positions in a list *)
 let og =
@@ -70,9 +69,11 @@ let void_squares : ((int * int) list) ref = ref []
 
 (* [pic_positions] is the list of possible images for pieces *)
 let pic_positions : (string list) ref = ref
-    ["b_pawn";"w_pawn";"b_rook";"w_rook";"b_knight";"w_knight";
-     "b_bishop";"w_bishop";"b_queen";"w_queen";"b_king";"w_king";
-     "b_custom";"w_custom"]
+  [
+    "b_pawn";"w_pawn";"b_rook";"w_rook";"b_knight";"w_knight";
+   "b_bishop";"w_bishop";"b_queen";"w_queen";"b_king";"w_king";
+    "b_custom";"w_custom"
+  ]
 
 (* [custom_moves] is a list of possible movements for the custom piece *)
 let custom_moves : (string list) ref = ref []
@@ -488,7 +489,6 @@ let handle_makeboard _ =
   chosen_image := "none";
   let c = get_square 6 6 in
   c##style##backgroundImage <- (Js.string "none");
-  draw_board_init ();
   window##alert (Js.string "You are now customizing your board. Click to turn
   squares into voids, and finally move WHITE pieces on to the board. You must \
   place a king on the board!");
@@ -544,9 +544,9 @@ let create_json () =
   let e' = pieces_string !init_pieces "" in
   let e = String.(sub e' 0 (length e' - 1)) in
   let f = "],\"captured\": [], \"color\": \"White\"," in
-  let g = "\"trow\":" ^ List.(hd !active_squares |> snd |> string_of_int)^"," in
+  let g = "\"trow\":" ^ List.(hd !active_squares |> fst |> string_of_int)^"," in
   let h = "\"brow\":" ^ List.(length !active_squares - 1 |> nth !active_squares
-                              |> snd |> string_of_int) ^ "," in
+    |> fst |> string_of_int) ^ "," in
   let i = "\"promote\": \"None\",\"turn\": 1,\"score\": \"(0,0)\"," in
   let j' = List.assoc "url('images/w_king.png')" !init_pieces in
   let j = "\"wking\":\"(" ^ (string_of_int (snd j')) ^ "," ^
@@ -589,7 +589,7 @@ let handle_play _ =
     Js._false
   )
   else (
-    window##alert (Js.string "Please put a king of each color on the board.");
+    window##alert (Js.string "Please put one king of each color on the board.");
     Js._false
   )
 
