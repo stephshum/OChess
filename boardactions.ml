@@ -77,9 +77,8 @@ let pic_positions : (string list) ref = ref
 (* [custom_moves] is a list of possible movements for the custom piece *)
 let custom_moves : (string list) ref = ref []
 
-(* [highlighted] is a list of highlighted squares and their initial colors *)
-let highlighted : ((Dom_html.element Js.t) * (Js.js_string Js.t)) list ref =
-  ref []
+(* [custom_coords] is the list of custom coordinates as int pairs *)
+let custom_coords : (int * int) list ref = ref []
 
 (* [init_pieces] is a list of the pieces placed on the board before a
  * game has begun denoted by its name and the row and column of its square *)
@@ -110,12 +109,10 @@ let get_button s =
 let get_square r c =
   get_element ("T-" ^ (string_of_int r) ^ "," ^ (string_of_int c))
 
-(* [highlight_sq s] highlights the square s
- * requires: [s] is an int * int pair *)
-let highlight_sq s =
-  let r = fst s in
-  let c = snd s in
-  let sq = get_square r c in
+(* [highlight_sq (r,c)] highlights the square (r,c)
+ * requires: [r,c] is an int pair *)
+let highlight_sq (r,c) =
+  let sq = get_square c r in
   let s' = sq##style##backgroundColor in
   if Js.to_string s' <> "transparent" then begin
     if (r + c) mod 2 = 0 then
@@ -133,23 +130,17 @@ let rec highlight_moves () =
 
 (* [get_row r c l] highlights the  HTML elements in row [r] *)
 let rec get_row r c (l : Dom_html.element Js.t list) =
-  if List.length l = 12 then (
-    List.iter (fun x ->
-      let b' = x##style##backgroundColor in
-      highlighted := (x,b')::!highlighted) l)
+  if List.length l = 12 then ()
   else (
-    highlight_sq (r,c);
+    highlight_sq (c,r);
     get_row r (c+1) ((get_square r c)::l))
 
 (* [get_col r l] highlights the HTML elements in column [c] *)
 let rec get_col r c (l : Dom_html.element Js.t list) =
-  if List.length l = 12 then (
-    List.iter (fun x ->
-      let b' = x##style##backgroundColor in
-      highlighted := (x,b')::!highlighted) l)
+  if List.length l = 12 then ()
   else
-    highlight_sq (r,c);
-  get_col (r+1) c ((get_square r c)::l)
+    highlight_sq (c,r);
+    get_col (r+1) c ((get_square r c)::l)
 
 (* [get_up_diagL r l] is a list of HTML elements in the left up diagonal *)
 let rec get_up_diagL r c l =
@@ -179,7 +170,6 @@ let rec get_d_diagR r c l =
 let get_diag l =
   List.iter (fun x ->
     let b' = x##style##backgroundColor in
-    highlighted := (x,b')::(!highlighted);
     if Js.to_string b' <> "transparent" then (
       x##style##backgroundColor <- (Js.string "#ffe18c"))) l
 
@@ -228,6 +218,22 @@ let piece_to_str p =
 let orig_colors a =
   List.map (fun x -> (x,(get_square (fst x) (snd x))##style##backgroundColor)) a
 
+(* [custom_highlight ()] highlights the squares for custom moves *)
+let custom_highlight () =
+  let c = get_square 6 6 in
+  c##style##backgroundImage <- (Js.string "url('images/w_custom.png')");
+  let color s =
+    begin
+    match s with
+    | "Up" -> get_col 0 6 []
+    | "Right" -> get_row 6 0 []
+    | "DiagL" -> get_diag ((get_up_diagL 6 6 []) @ (get_d_diagL 6 6 []))
+    | "DiagR" -> get_diag ((get_up_diagR 6 6 []) @ (get_d_diagR 6 6 []))
+    | _ -> ()
+  end in
+  List.iter highlight_sq !custom_coords;
+  List.iter color !custom_moves
+
 (*
  * [piece_helper r c e b] is the helper function for handle_square
  * during the custom piece stage
@@ -241,17 +247,15 @@ let piece_helper r c sq b =
   let p =
     begin
       match d with
-      | (-1,0) | (1,0)  -> get_col 0 c []; "Up"
-      | (0,-1) | (0,1)  -> get_row r 0 []; "Right"
-      | (1,1)  | (-1,-1) ->
-        get_diag ((get_up_diagL r c []) @ (get_d_diagL r c [])); "DiagL"
-      | (-1,1) | (1,-1)  ->
-        get_diag ((get_up_diagR r c []) @ (get_d_diagR r c [])); "DiagR"
-      | _ -> highlight_sq (r,c);
+      | (-1,0) | (1,0)  -> "Up"
+      | (0,-1) | (0,1)  -> "Right"
+      | (1,1)  | (-1,-1) -> "DiagL"
+      | (-1,1) | (1,-1)  -> "DiagR"
+      | _ -> custom_coords := (c,r)::(!custom_coords);
         "(" ^ (string_of_int (c-6)) ^ "," ^ (string_of_int (6-r)) ^ ")"
     end in
   custom_moves := p::(!custom_moves);
-  highlighted := (sq,b)::(!highlighted)
+  custom_highlight ()
 
 (* [draw_board_init ()] redraws board during map customization *)
 let draw_board_init () =
@@ -370,8 +374,6 @@ let play_helper r c sq b =
               List.filter (fun (_,pce) -> pce.pcolor=(!current_state).color) |>
               List.mem_assoc (c,r) then
             begin
-              List.iter (fun a -> (fst a)##style##backgroundColor <- snd a)
-                !highlighted;
               if Js.to_string sq##style##backgroundImage <> "" then
                 (chosen_piece := Some sq;
                  piece_loc := (c,r));
@@ -383,7 +385,6 @@ let play_helper r c sq b =
         end
       | Some x ->
         begin
-          List.iter (fun a -> (fst a)##style##backgroundColor <- snd a) !highlighted;
           if List.mem (r,c) !active_squares && (!chosen_piece <> None) then (
             let moves = State.val_move_lst !piece_loc !current_state in
             if List.mem (c,r) moves then (
@@ -475,8 +476,7 @@ let handle_makepiece _ =
   List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
                 Js.string "none") !active_squares;
   current_stage := Custom_piece;
-  let c = get_square 6 6 in
-  c##style##backgroundImage <- (Js.string "url('images/w_custom.png')");
+  custom_highlight ();
   window##alert (Js.string "You are now customizing a new piece. Click adjacent
   squares for unranged movement and others for jumps.");
   Js._false
@@ -488,11 +488,10 @@ let handle_makeboard _ =
   chosen_image := "none";
   let c = get_square 6 6 in
   c##style##backgroundImage <- (Js.string "none");
-  List.iter (fun x -> (fst x)##style##backgroundColor <- snd x) !highlighted;
-  highlighted := [];
+  draw_board_init ();
   window##alert (Js.string "You are now customizing your board. Click to turn
   squares into voids, and finally move WHITE pieces on to the board. You must \
-                            place a king on the board!");
+  place a king on the board!");
   Js._false
 
 (* [pieces_string x s] is the string of pieces and their starting positions.
@@ -581,6 +580,7 @@ let handle_play _ =
     )
   (false,(false,false)) !init_pieces)) then (
     current_stage := Play;
+    change_player ();
     chosen_image := "none";
     now_playing ();
     current_state := init_state (create_json ());
