@@ -723,10 +723,10 @@ let do' cmd st =
         let st' =
           if (pc.name = King true || pc.name = King false) &&
              st.color = Black then
-            {st with bking = (xf,yf)}
+            {pre_state with bking = (xf,yf)}
           else if (pc.name = King true || pc.name = King false)
                && st.color = White then
-            {st with wking = (xf,yf)}
+            {pre_state with wking = (xf,yf)}
           else
             pre_state
         in
