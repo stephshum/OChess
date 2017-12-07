@@ -7,19 +7,18 @@ open Command
 
 let j = Yojson.Basic.from_file "default.json"
 let a = init_state j
-let b = do' (Move ((4,9),(4,7))) a
-let c = do' (Move ((9,3), (8,5))) b
-let d = do' (Move ((7,10), (7,9))) c
-
+let b = do' (Move ((3,8),(3,6))) a
+let c = do' (Move ((8,2), (7,4))) b
+let d = do' (Move ((6,9), (6,8))) c
 
 
 let tests = [
   "b_missing" >:: (fun _ -> assert_equal (a.missing) (b.missing));
   "b_pieces" >:: (fun _ -> assert_equal (a.pieces) (b.pieces));
   "b_pc_loc" >:: (fun _ -> assert_equal (List.sort compare
-                                           (((4,7),{name = Pawn false;
+                                           (((3,6),{name = Pawn false;
                                                     pcolor = White})::
-                                            (List.remove_assoc (4,9) a.pc_loc)))
+                                            (List.remove_assoc (3,8) a.pc_loc)))
                      (List.sort compare b.pc_loc));
   "b_captured" >:: (fun _ -> assert_equal (a.captured) (b.captured));
   "b_color" >:: (fun _ -> assert_equal (a.color) (if b.color = Black then White
@@ -38,9 +37,9 @@ let tests = [
   "c_missing" >:: (fun _ -> assert_equal (c.missing) (b.missing));
   "c_pieces" >:: (fun _ -> assert_equal (c.pieces) (b.pieces));
   "c_pc_loc" >:: (fun _ -> assert_equal (List.sort compare c.pc_loc)
-                     (List.sort compare (((4,7),{name = Knight;
+                     (List.sort compare (((3,6),{name = Knight;
                                                  pcolor = Black})::
-                                         (List.remove_assoc (9,3) b.pc_loc))));
+                                         (List.remove_assoc (8,2) b.pc_loc))));
   "c_captured" >:: (fun _ -> assert_equal (c.captured) (b.captured));
   "c_color" >:: (fun _ -> assert_equal (c.color) (if b.color = Black then White
                                                   else Black));
@@ -58,9 +57,9 @@ let tests = [
   "d_missing" >:: (fun _ -> assert_equal (d.missing) (c.missing));
   "d_pieces" >:: (fun _ -> assert_equal (d.pieces) (c.pieces));
   "d_pc_loc" >:: (fun _ -> assert_equal (List.sort compare d.pc_loc)
-                     (List.sort compare (((7,9),{name = Pawn false;
+                     (List.sort compare (((6,8),{name = Pawn false;
                                                  pcolor = White})::
-                                         (List.remove_assoc (7,10) b.pc_loc))));
+                                         (List.remove_assoc (6,9) b.pc_loc))));
   "d_captured" >:: (fun _ -> assert_equal (d.captured) (c.captured));
   "d_color" >:: (fun _ -> assert_equal (d.color) (if c.color = Black then White
                                                   else Black));
