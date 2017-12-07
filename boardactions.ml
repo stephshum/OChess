@@ -105,32 +105,51 @@ let get_button s =
   | Dom_html.Button button -> button
   | _ -> raise (Failure "Not a button")
 
+(* [highlight_sq s] highlights the square s
+ * requires: [s] is an int * int pair *)
+let highlight_sq s =
+  let r = fst s in
+  let c = snd s in
+  let sq = get_square r c in
+  let s' = sq##style##backgroundColor in
+  if Js.to_string s' <> "transparent" then begin
+    if (r + c) mod 2 = 0 then
+      sq##style##backgroundColor <- (Js.string "#ffe18c")
+    else
+      sq##style##backgroundColor <- (Js.string "#ffd456")
+  end
+  else ()
+
+(* [highlight_moves r c] highlights squares the piece at ([r],[c]) can move to
+ * to yellow *)
+let rec highlight_moves () =
+  let moves = State.val_move_lst !piece_loc !current_state in
+  List.iter highlight_sq moves
+
 (* [get_square r c] is the HTML element for a square on the board at row [r]
  * and column [c] *)
 let get_square r c =
   get_element ("T-" ^ (string_of_int r) ^ "," ^ (string_of_int c))
 
-(* [get_row r l] is a list of HTML elements in row [r] *)
+(* [get_row r c l] highlights the  HTML elements in row [r] *)
 let rec get_row r c (l : Dom_html.element Js.t list) =
   if List.length l = 12 then (
     List.iter (fun x ->
-        let b' = x##style##backgroundColor in
-        highlighted := (x,b')::(!highlighted);
-        if Js.to_string b' <> "transparent" then (
-          x##style##backgroundColor <- (Js.string "#ffd456"))) l)
+      let b' = x##style##backgroundColor in
+      highlighted := (x,b')::!highlighted) l)
   else (
+    highlight_sq (r,c);
     get_row r (c+1) ((get_square r c)::l))
 
-(* [get_col r l] is a list of HTML elements in column [c] *)
+(* [get_col r l] highlights the HTML elements in column [c] *)
 let rec get_col r c (l : Dom_html.element Js.t list) =
   if List.length l = 12 then (
     List.iter (fun x ->
-        let b' = x##style##backgroundColor in
-        highlighted := (x,b')::(!highlighted);
-        if Js.to_string b' <> "transparent" then (
-          x##style##backgroundColor <- (Js.string "#ffd456"))) l)
-  else (
-    get_col (r+1) c ((get_square r c)::l))
+      let b' = x##style##backgroundColor in
+      highlighted := (x,b')::!highlighted) l)
+  else
+    highlight_sq (r,c);
+  get_col (r+1) c ((get_square r c)::l)
 
 (* [get_up_diagL r l] is a list of HTML elements in the left up diagonal *)
 let rec get_up_diagL r c l =
@@ -159,10 +178,10 @@ let rec get_d_diagR r c l =
 (* [get_diag l] highlights the squares in [l] *)
 let get_diag l =
   List.iter (fun x ->
-      let b' = x##style##backgroundColor in
-      highlighted := (x,b')::(!highlighted);
-      if Js.to_string b' <> "transparent" then (
-        x##style##backgroundColor <- (Js.string "#ffd456"))) l
+    let b' = x##style##backgroundColor in
+    highlighted := (x,b')::(!highlighted);
+    if Js.to_string b' <> "transparent" then (
+      x##style##backgroundColor <- (Js.string "#ffe18c"))) l
 
 (* [get_image u] is the name of the image with url [u] *)
 let get_image u =
@@ -244,18 +263,17 @@ let piece_helper r c sq b =
   highlighted := (sq,b)::(!highlighted);
   sq##style##backgroundColor <- (Js.string "#ffd456")
 
-
-(* [draw_board_init] redraws board during map customization *)
+(* [draw_board_init ()] redraws board during map customization *)
 let draw_board_init () =
   List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c) og;
   List.iter (fun (c,r) ->
-      (get_square r c)##style##backgroundColor <- Js.string "#a8a8a8")
+    (get_square r c)##style##backgroundColor <- Js.string "#a8a8a8")
     [(1,4);(1,7);(10,7);(10,4)];
   List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
   List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
-                Js.string "none") !active_squares;
+    Js.string "none") !active_squares;
   List.iter (fun (im,(x,y)) -> (get_square x y)##style##backgroundImage <-
-                Js.string im) (!init_pieces)
+    Js.string im) (!init_pieces)
 
 (*
  * [board_helper r c e] is the helper function for handle_square
@@ -332,12 +350,12 @@ let draw_power _ =
 (* [draw_board ()] draws the board based on the current state *)
 let draw_board () =
   List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c) og;
-  List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
   List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
-                Js.string "none") !active_squares;
+    Js.string "none") !active_squares;
   List.iter (fun ((x,y),p) -> (get_square y x)##style##backgroundImage <-
-                piece_to_str p) (!current_state.pc_loc);
+    piece_to_str p) (!current_state.pc_loc);
   draw_power ();
+  List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
   change_player ();
   chosen_piece := None;
   change_score ();
