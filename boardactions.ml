@@ -56,6 +56,15 @@ let active_squares : ((int * int) list) ref = ref
       (11,10);(11,11)
     ]
 
+
+(* [og] is the original chess board colors associated to positions in a list *)
+let og =
+  List.fold_left (fun acc (row,col) ->
+      if (row + col) mod 2 = 0 then
+        ((row,col),Js.string "#ffe8dd")::acc
+      else
+        ((row,col),Js.string "#edac93")::acc) [] !active_squares
+
 (* [void_squares] is the list of squares on the board that are void *)
 let void_squares : ((int * int) list) ref = ref []
 
@@ -280,15 +289,20 @@ let change_player () =
   | Black -> (get_element "player-1")##style##backgroundColor <-
       Js.string "#fff9dd"
 
+let draw_power _ =
+  List.iter (fun ((c,r),_) ->
+      (get_square r c)##style##backgroundColor <- Js.string "#a8a8a8")
+    !current_state.powvalid
+
 (* [draw_board ()] draws the board based on the current state *)
 let draw_board () =
-  List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c)
-    (orig_colors !active_squares);
+  List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c) og;
   List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
   List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
                 Js.string "none") !active_squares;
   List.iter (fun ((x,y),p) -> (get_square y x)##style##backgroundImage <-
                 piece_to_str p) (!current_state.pc_loc);
+  draw_power ();
   change_player ();
   chosen_piece := None;
   change_score ();
@@ -316,7 +330,7 @@ let play_helper r c sq b =
               highlight_moves ()
             end
           else
-            window##alert (Js.string "Please choose current player's piece.")
+            ()
         end
       | Some x ->
         begin
