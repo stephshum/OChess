@@ -165,8 +165,8 @@ let init_state j =
       score = j |> member "score" |> int_tuple_of_json;
       wking = j |> member "wking" |> int_tuple_of_json;
       bking = j |> member "bking" |> int_tuple_of_json;
-      powvalid = [((1,4), RaisetheDead); ((1,7), RaisetheDead);
-                  ((10,7), RaisetheDead); ((10,4), RaisetheDead);
+      powvalid = [((1,4), powerup_used1); ((1,7), powerup_used1);
+                  ((10,7), powerup_used2); ((10,4), powerup_used2);
                  ]; (*TODO rewrite this*)
       check = j |> member "check" |> check_of_json;
       checkmate = j |> member "promote" |> checkmate_of_json
