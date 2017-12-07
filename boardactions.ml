@@ -268,7 +268,7 @@ let board_helper r c sq =
   let m = (11-r, c) in
   if !chosen_image = "none" then (
     if not (List.fold_left
-              (fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
+      (fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
       if not (List.mem (r,c) !void_squares) then (
         void_squares := m::(r,c)::(!void_squares);
         active_squares := List.filter (fun x -> x <> (r,c) && (x <> m))
@@ -284,7 +284,7 @@ let board_helper r c sq =
   )
   else (
     if List.mem (r,c) !active_squares && not (List.fold_left
-                                                (fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
+      (fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
       let im_w = !chosen_image in
       let im_b = String.((sub im_w 0 12)^"b"^(sub im_w 13 (length im_w-13))) in
       init_pieces := (im_w,(r,c))::(im_b,(11-r,c))::(!init_pieces);
@@ -334,9 +334,9 @@ let draw_board () =
   List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c) og;
   List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
   List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
-                Js.string "none") !active_squares;
+    Js.string "none") !active_squares;
   List.iter (fun ((x,y),p) -> (get_square y x)##style##backgroundImage <-
-                piece_to_str p) (!current_state.pc_loc);
+    piece_to_str p) (!current_state.pc_loc);
   draw_power ();
   change_player ();
   chosen_piece := None;
@@ -358,7 +358,7 @@ let play_helper r c sq b =
       match !chosen_piece with
       | None ->
         begin
-          if  (!current_state).pc_loc |>
+          if (!current_state).pc_loc |>
               List.filter (fun (_,pce) -> pce.pcolor=(!current_state).color) |>
               List.mem_assoc (c,r) then
             begin
@@ -436,8 +436,8 @@ let handle_pic h e _ =
     match !current_stage with
     | Custom_board ->
       (if !chosen_image <> "none" then (
-          let n = get_image !chosen_image in
-          (get_element n)##style##backgroundColor <- (Js.string "transparent")));
+        let n = get_image !chosen_image in
+        (get_element n)##style##backgroundColor <- (Js.string "transparent")));
       chosen_image := "url('images/" ^ h ^ ".png')";
       e##style##backgroundColor <- (Js.string "#2d5475");
     | Play -> promote_helper h
@@ -465,7 +465,7 @@ let now_playing () =
 let handle_makepiece _ =
   List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c) og;
   List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
-                Js.string "none") !active_squares;
+    Js.string "none") !active_squares;
   current_stage := Custom_piece;
   let c = get_square 6 6 in
   c##style##backgroundImage <- (Js.string "url('images/w_custom.png')");
@@ -484,7 +484,7 @@ let handle_makeboard _ =
   highlighted := [];
   window##alert (Js.string "You are now customizing your board. Click to turn
   squares into voids, and finally move WHITE pieces on to the board. You must \
-                            place a king on the board!");
+  place a king on the board!");
   Js._false
 
 (* [pieces_string x s] is the string of pieces and their starting positions.
@@ -502,14 +502,14 @@ let rec pieces_string x s =
       let x = String.(length w - 2 |> sub w 2 |> capitalize_ascii) in
       let name = if x = "Custom" then "custom" else x in
       pieces_string t (s^"{\"piece\":{\"name\":\"" ^ name ^ "\",\"color\":\"" ^
-                       p ^ "\"},\"position\":\"(" ^ (string_of_int c) ^ "," ^ (string_of_int r) ^
-                       ")\"},")
+      p ^ "\"},\"position\":\"(" ^ (string_of_int c) ^ "," ^ (string_of_int r) ^
+      ")\"},")
   end
 
 (* [create_json ()] creates a JSON string for the initial state of the game *)
 let create_json () =
   let void x y = x ^ ",\"(" ^ (y |> snd |> string_of_int) ^
-                 "," ^ (y |> fst |> string_of_int) ^ ")\"" in
+    "," ^ (y |> fst |> string_of_int) ^ ")\"" in
   let a' = List.fold_left void "" !void_squares in
   let a =
     try
