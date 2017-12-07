@@ -434,12 +434,9 @@ let do' cmd st =
     else
       st
   in
-  (* [check_for_power (xf, yf) st] will return [Some x] if there is a
-   * powerup associated with the positions, None otherwise*)
   let check_for_power (xf, yf) st =
     List.assoc_opt (xf, yf) st.powvalid
   in
-  (*Raise the Dead*)
   let pow0 (x,y) st =
     let higherpow l c =
       let poten = l in
@@ -459,7 +456,6 @@ let do' cmd st =
     else
       higherpow [(x,y+1); (x+1, y+1); (x-1, y+1)] Black
   in
-  (* Elimination*)
   let pow1 (x, y) st =
     let predic p = (fst (fst p) = x && (snd p).name <> King true
                     && (snd p).name <> King false) in
@@ -470,7 +466,6 @@ let do' cmd st =
              captured = only_pieces@st.captured;
              powvalid = List.remove_assoc (x,y) st.powvalid}
   in
-  (* NoJumpers*)
   let pow2 (x,y) st =
     let predic1 (p: (name * (move list))) =
       let lst = snd p in
@@ -491,10 +486,6 @@ let do' cmd st =
              captured = only_pieces@st.captured;
              powvalid = List.remove_assoc (x,y) st.powvalid}
   in
-  (*Second Chance
-    changes
-    same line as piece
-    random piece if ther randomly selected spot fits the criteria*)
   let pow3 (x, y) st =
     let higherpow c =
       let my_pieces = List.filter (fun x -> (x.pcolor = c)) st.captured in
@@ -526,7 +517,6 @@ let do' cmd st =
     else
       higherpow Black
   in
-  (*clone*)
   let pow4 (x,y) st =
     let higherpow c =
       let my_pieces = List.filter (fun x ->
@@ -578,7 +568,6 @@ let do' cmd st =
     else
       higherpow White Black
   in
-  (* CultMurder*)
   let pow6 (x, y) st =
     let surrounding_tent = [(x-1,y+1); (x+1,y-1);
                             (x+1,y);(x,y+1);(x+1,y+1);
@@ -596,10 +585,6 @@ let do' cmd st =
     {st with pc_loc = updated;
              captured = only_pieces@st.captured;
              powvalid = List.remove_assoc (x,y) st.powvalid}
-    (* [use_power pow st] will return an updated state with changes enacted
-     * as described in "powerup_ideas.txt" if [pow] is [Some x]. If
-     * [pow] is [None],st will remain the same
-     * *)
   in
   let use_power loc pow st =
      match pow with
