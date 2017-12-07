@@ -228,16 +228,6 @@ let piece_to_str p =
 let orig_colors a =
   List.map (fun x -> (x,(get_square (fst x) (snd x))##style##backgroundColor)) a
 
-(* [highlight_sq s] highlights the square s *)
-let highlight_sq s =
-  (get_square (snd s) (fst s))##style##backgroundColor <- (Js.string "#ffd456")
-
-(* [highlight_moves r c] highlights squares the piece at ([r],[c]) can move to
- * to yellow *)
-let rec highlight_moves () =
-  let moves = State.val_move_lst !piece_loc !current_state in
-  List.iter highlight_sq moves
-
 (*
  * [piece_helper r c e b] is the helper function for handle_square
  * during the custom piece stage
@@ -257,11 +247,11 @@ let piece_helper r c sq b =
         get_diag ((get_up_diagL r c []) @ (get_d_diagL r c [])); "DiagL"
       | (-1,1) | (1,-1)  ->
         get_diag ((get_up_diagR r c []) @ (get_d_diagR r c [])); "DiagR"
-      | _ -> "(" ^ (string_of_int (c-6)) ^ "," ^ (string_of_int (6-r)) ^ ")"
+      | _ -> highlight_sq (r,c);
+        "(" ^ (string_of_int (c-6)) ^ "," ^ (string_of_int (6-r)) ^ ")"
     end in
   custom_moves := p::(!custom_moves);
-  highlighted := (sq,b)::(!highlighted);
-  sq##style##backgroundColor <- (Js.string "#ffd456")
+  highlighted := (sq,b)::(!highlighted)
 
 (* [draw_board_init ()] redraws board during map customization *)
 let draw_board_init () =
