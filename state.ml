@@ -28,18 +28,58 @@ type state = {
 }
 
 let init_state j =
-  (* TODO *)
   let re = Str.regexp "-*[0-9]+" in
   let int_tuple_of_json j =
-    let s = j |> to_string in
-    let pos = Str.search_forward re s 0 in
-    let fs = Str.matched_string s in
-    let nxt = (String.sub s (String.length fs+pos)
-                 (String.length s - String.length fs-pos)) in
-    let _ = Str.search_forward re nxt 0 in
-    let sn = Str.matched_string nxt in
-    (fs|>int_of_string,sn|>int_of_string)
-  in (* TODO *)
+    let str = j |> to_string in
+    let len = str |> String.length in
+    if len = 7
+    then
+      let ff = String.get str 1 in
+      let fs = String.get str 2 in
+      let sf = String.get str 4 in
+      let ss = String.get str 5 in
+      let cff = Char.code ff in
+      let cfs = Char.code fs in
+      let csf = Char.code sf in
+      let css = Char.code ss in
+      let intff = cff - 48 in
+      let intfs = cfs - 48 in
+      let intsf = csf - 48 in
+      let intss = css - 48 in
+      (intff*10+intfs, intsf*10+intss)
+    else if len = 5
+    then
+      let f = String.get str 1 in
+      let s = String.get str 3 in
+      let cf = Char.code f in
+      let cs = Char.code s in
+      let intf = cf - 48 in
+      let ints = cs - 48 in
+      (intf, ints)
+    else if ((String.get str 2) = ',')
+    then
+      let f = String.get str 1 in
+      let sf = String.get str 3 in
+      let ss = String.get str 4 in
+      let cf = Char.code f in
+      let csf = Char.code sf in
+      let css = Char.code ss in
+      let intf = cf - 48 in
+      let intsf = csf - 48 in
+      let intss = css - 48 in
+      (intf, intsf*10 + intss)
+    else
+      let ff = String.get str 1 in
+      let fs = String.get str 2 in
+      let s = String.get str 4 in
+      let cff = Char.code ff in
+      let cfs = Char.code fs in
+      let cs = Char.code s in
+      let intff = cff - 48 in
+      let intfs = cfs - 48 in
+      let ints = cs - 48 in
+      (intff*10 + intfs, ints)
+  in
   let color_of_json j =
     let s = j |> to_string in
     if s = "Black" then Black
