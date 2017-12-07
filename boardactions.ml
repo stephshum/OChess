@@ -237,9 +237,23 @@ let piece_helper r c sq b =
   highlighted := (sq,b)::(!highlighted);
   sq##style##backgroundColor <- (Js.string "#ffd456")
 
+
+(* [draw_board_init] redraws board during map customization *)
+let draw_board_init () =
+  List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c) og;
+  List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
+  List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
+                Js.string "none") !active_squares;
+  List.iter (fun (im,(x,y)) -> (get_square x y)##style##backgroundImage <-
+                Js.string im) (!init_pieces);
+  List.iter (fun (c,r) ->
+      (get_square r c)##style##backgroundColor <- Js.string "#a8a8a8")
+    [(1,4);(1,7);(10,7);(10,4)]
+
 (* [board_helper r c e] is the helper function for handle_square
  * during the custom board stage *)
 let board_helper r c sq =
+  window##alert (Js.string "test");
   let m = (11-r, c) in
   if !chosen_image = "none" then (
     if not (List.fold_left
@@ -247,29 +261,30 @@ let board_helper r c sq =
       if not (List.mem (r,c) !void_squares) then (
         void_squares := m::(r,c)::(!void_squares);
         active_squares := List.filter (fun x -> x <> (r,c) && (x <> m))
-          !active_squares;
-        make_void sq;
-        snd m |> get_square (fst m) |> make_void
+            !active_squares;
+        draw_board_init ()
       )
       else (
         void_squares := List.filter (fun x->x <> (r,c)&&(x <> m)) !void_squares;
         active_squares := m::(r,c)::!active_squares;
-        let c = List.assoc (r,c) og in
-        let c2 = List.assoc m og in
-        (get_square (fst m) (snd m))##style##backgroundColor <- c2;
-        sq##style##backgroundColor <- c;
+        draw_board_init ()
       ))
     else ()
   )
   else (
-    if List.mem (r,c) !active_squares then
-      let s = String.(sub !chosen_image 14 (length !chosen_image - 14)) in
-      let o = get_square (fst m) (snd m) in
-      sq##style##backgroundImage <- (Js.string !chosen_image);
-      o##style##backgroundImage <- (Js.string ("url('images/b_" ^ s)));
-  let im_w = !chosen_image in
-  let im_b = String.((sub im_w 0 12)^"b"^(sub im_w 13 (length im_w-13))) in
-  init_pieces := (im_w,(r,c))::(im_b,(11-r,c))::(!init_pieces)
+    if List.mem (r,c) !active_squares && not (List.fold_left
+    (fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
+      let im_w = !chosen_image in
+      let im_b = String.((sub im_w 0 12)^"b"^(sub im_w 13 (length im_w-13))) in
+      init_pieces := (im_w,(r,c))::(im_b,(11-r,c))::(!init_pieces);
+      draw_board_init ()
+    )
+    else if (List.fold_left (
+      fun acc (_,p)->p=(r,c)||acc) false !init_pieces) then (
+      init_pieces := List.filter (fun (_,x)->x <> (r,c)&&(x <> m)) !init_pieces;
+      draw_board_init ()
+    ))
+
 
 (* [change_score ()] changes the score on the screen according to state *)
 let change_score () =
@@ -422,6 +437,9 @@ let now_playing () =
 
 (* [handle_piece _] is the callback for the customize piece button *)
 let handle_makepiece _ =
+  List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c) og;
+  List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
+                Js.string "none") !active_squares;
   current_stage := Custom_piece;
   let c = get_square 6 6 in
   c##style##backgroundImage <- (Js.string "url('images/w_custom.png')");
@@ -431,6 +449,7 @@ let handle_makepiece _ =
 
 (* [handle_board _] is the callback for the customize board button *)
 let handle_makeboard _ =
+  draw_board_init ();
   current_stage := Custom_board;
   chosen_image := "none";
   let c = get_square 6 6 in
