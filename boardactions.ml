@@ -200,16 +200,6 @@ let piece_to_str p =
 let orig_colors a =
   List.map (fun x -> (x,(get_square (fst x) (snd x))##style##backgroundColor)) a
 
-(* [draw_board ()] draws the board based on the current state *)
-let draw_board () =
-  List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c)
-    (orig_colors !active_squares);
-  List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
-  List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
-                Js.string "none") !active_squares;
-  List.iter (fun ((x,y),p) -> (get_square y x)##style##backgroundImage <-
-                piece_to_str p) !current_state.pc_loc
-
 (* [highlight_sq s] highlights the square s *)
 let highlight_sq s =
   (get_square (snd s) (fst s))##style##backgroundColor <- (Js.string "#ffd456")
@@ -219,6 +209,20 @@ let highlight_sq s =
 let rec highlight_moves () =
   let moves = State.val_move_lst !piece_loc !current_state in
   List.iter highlight_sq moves
+
+(* [draw_board ()] draws the board based on the current state *)
+let draw_board () =
+  List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c)
+    (orig_colors !active_squares);
+  List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
+  List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
+                Js.string "none") !active_squares;
+  List.iter (fun ((x,y),p) -> (get_square y x)##style##backgroundImage <-
+                piece_to_str p) !current_state.pc_loc
+  change_player ();
+  chosen_piece := None;
+  change_score ();
+  check_mate ())
 
 (* [piece_helper r c e b] is the helper function for handle_square
  * during the custom piece stage *)
@@ -291,9 +295,9 @@ let check_mate () =
 let change_player () =
   match !current_state.color with
   | White -> (get_element "player-0")##style##backgroundColor <-
-      Js.string #fff9dd
+      Js.string "#fff9dd"
   | Black -> (get_element "player-1")##style##backgroundColor <-
-      Js.string #fff9dd
+      Js.string "#fff9dd"
 
 (* [play_helper r c sq b] is the helper function for handle_square
  * during the play stage *)
@@ -321,13 +325,7 @@ let play_helper r c sq b =
             let moves = State.val_move_lst !piece_loc !current_state in
             if List.mem (c,r) moves then (
               current_state := State.do' (Move (!piece_loc,(c,r))) !current_state;
-              draw_board ();
-              change_player ();
-              x##style##backgroundImage <- (Js.string "none");
-              sq##style##backgroundImage <- img;
-              chosen_piece := None;
-              change_score ();
-              check_mate ()))
+              draw_board ()
         end
     end
   | Some pos ->
