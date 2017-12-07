@@ -204,13 +204,8 @@ let init_state j =
       score = j |> member "score" |> int_tuple_of_json;
       wking = j |> member "wking" |> int_tuple_of_json;
       bking = j |> member "bking" |> int_tuple_of_json;
-      powvalid = [((0,0),RaisetheDead);((0,11), RaisetheDead);
-                  ((1,4),Elimination);((1,7), Elimination);
-                  ((2,1), NoJumpers); ((2,10), NoJumpers);
-                  ((4,0), SecondChance); ((4,11), SecondChance);
-                  ((6,1), Clone); ((6,10), Clone);
-                  ((9,1), MindControl); ((9,10), MindControl);
-                  ((11,3), CultMurder); ((11,8), CultMurder);];
+      powvalid = [((1,4), Elimination);((1,7), Elimination);
+                  ((10,4), RaisetheDead); ((10,7), RaisetheDead)];
       check = j |> member "check" |> check_of_json;
       checkmate = j |> member "promote" |> checkmate_of_json
     }
@@ -738,7 +733,7 @@ let do' cmd st =
         let truth  = in_check pow_state.missing pow_state.pieces
             pow_state.pc_loc ncolor kloc in
         let fin_state = {pow_state with check = color_in_check ncolor truth;
-                                        color = ncolor
+                                        color = ncolor;
                         } in
         color_in_checkmate truth fin_state
       else
