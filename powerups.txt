@@ -1,0 +1,47 @@
+General Power-up Information
+-Kings can use power-ups, but are not allowed to be killed by power-ups. 
+-The score will not update for a power-up. 
+-After being used, a power-up will be deleted.
+
+
+***Raise the Dead***
+Description:
+-“Bring back” three pawns in front of you if there exists three valid spaces that are one space in front, one space to the top left, and one space to the top right. Does NOT require three captured pawns.
+*********************
+
+
+***Elimination***
+Description:
+-Eliminates a whole column of pieces, not including Kings.
+*********************
+
+
+***No Jumpers***
+Description:
+-Takes all of the pieces with a ‘Jump’ in their move list off of the board.
+*********************
+
+
+***Second Chance***
+Description:
+-A randomly selected piece belonging to the current player in the captured list will be placed on a randomly selected spot on the same row of the power-up. If there exists a piece already on that spot, the power-up will have no affect.
+*********************
+
+
+***Clone***
+Description:
+-A randomly selected piece belonging to the current player that is currently on the board will be placed on a randomly selected spot on the same row of the power-up. If there exists a piece already on that spot, the power-up will have no affect. The King cannot be cloned.
+*********************
+
+
+***Mind Control***
+Description:
+-A randomly selected piece belonging to the opponent player that is currently on the board will be placed on a randomly selected spot on the same row of the power-up. If there exists a piece already on that spot, the power-up will have no affect. The King cannot be Mind Controlled.
+*********************
+
+
+***Cult Murder***
+Description:
+-Kill every one in the ‘nearby circle’, which is defined to be all of the positions one block away from the power-up, not including Kings.
+*********************
+
