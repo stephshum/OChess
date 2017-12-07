@@ -1,2 +1,0 @@
-true: package(oUnit),package(yojson),package(str),package(ANSITerminal),package(js_of_ocaml), \
-package(js_of_ocaml.ocamlbuild), package(js_of_ocaml.syntax)
