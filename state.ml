@@ -30,11 +30,10 @@ let init_state j =
     let str = j |> to_string in
     let len = str |> String.length in
     let find_neg1 = String.index_opt str '-' in
-    match find_neg1 with
-    | Some n -> begin
-        let find_neg2 = String.rindex_opt str '-' in
-        match find_neg2 with
-        | Some i -> if (n <> i) then begin
+    let find_neg2 = String.rindex_opt str '-' in
+    match (find_neg1, find_neg2) with
+    | (Some n, Some i) -> begin
+        if (n <> i) then begin
             if len = 9
             then
               let ff = String.get str 2 in
@@ -181,9 +180,8 @@ let init_state j =
             let ints = cs - 48 in
             (intff*10+intfs, -ints)
         end
-        | None -> failwith "oops"
     end
-    | None ->
+    | (None, None) ->
     if len = 7
     then
       let ff = String.get str 1 in
@@ -231,6 +229,7 @@ let init_state j =
       let intfs = cfs - 48 in
       let ints = cs - 48 in
       (intff*10 + intfs, ints)
+    | _ -> failwith "oops"
   in
   let color_of_json j =
     let s = j |> to_string in
