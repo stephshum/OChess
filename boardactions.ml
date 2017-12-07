@@ -533,6 +533,8 @@ let handle_play _ =
   the board or pieces further. Gray squares are random powerups.");
   Js._false
 
+(* [onload _] registers clicks for buttons upon loading the HTML page.
+ * Inspired by Ram Vellanki's scrabble game onload function. *)
 let onload _ =
   (get_element "custom_piece")##onclick <- (handler handle_makepiece);
   (get_element "custom_board")##onclick <- (handler handle_makeboard);
