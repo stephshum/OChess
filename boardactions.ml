@@ -210,20 +210,6 @@ let rec highlight_moves () =
   let moves = State.val_move_lst !piece_loc !current_state in
   List.iter highlight_sq moves
 
-(* [draw_board ()] draws the board based on the current state *)
-let draw_board () =
-  List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c)
-    (orig_colors !active_squares);
-  List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
-  List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
-                Js.string "none") !active_squares;
-  List.iter (fun ((x,y),p) -> (get_square y x)##style##backgroundImage <-
-                piece_to_str p) !current_state.pc_loc
-  change_player ();
-  chosen_piece := None;
-  change_score ();
-  check_mate ())
-
 (* [piece_helper r c e b] is the helper function for handle_square
  * during the custom piece stage *)
 let piece_helper r c sq b =
@@ -299,6 +285,20 @@ let change_player () =
   | Black -> (get_element "player-1")##style##backgroundColor <-
       Js.string "#fff9dd"
 
+(* [draw_board ()] draws the board based on the current state *)
+let draw_board () =
+  List.iter (fun ((x,y),c) -> (get_square x y)##style##backgroundColor <- c)
+    (orig_colors !active_squares);
+  List.iter (fun (x,y) -> make_void (get_square x y)) !void_squares;
+  List.iter (fun (x,y) -> (get_square x y)##style##backgroundImage <-
+                Js.string "none") !active_squares;
+  List.iter (fun ((x,y),p) -> (get_square y x)##style##backgroundImage <-
+                piece_to_str p) (!current_state.pc_loc);
+  change_player ();
+  chosen_piece := None;
+  change_score ();
+  check_mate ()
+
 (* [play_helper r c sq b] is the helper function for handle_square
  * during the play stage *)
 let play_helper r c sq b =
@@ -308,14 +308,20 @@ let play_helper r c sq b =
       match !chosen_piece with
       | None ->
         begin
-          List.iter (fun a -> (fst a)##style##backgroundColor <- snd a)
-            !highlighted;
-          if Js.to_string sq##style##backgroundImage <> "" then
-            (chosen_piece := Some sq;
-             piece_loc := (c,r));
-          sq##style##backgroundColor <- (Js.string "#8c8c8c");
-          highlighted := (sq,b)::(!highlighted);
-          highlight_moves r c (get_moves sq)
+          if  (!current_state).pc_loc |>
+              List.filter (fun (_,pce) -> pce.pcolor=(!current_state).color) |>
+              List.mem_assoc (c,r) then
+            begin
+              List.iter (fun a -> (fst a)##style##backgroundColor <- snd a)
+                !highlighted;
+              if Js.to_string sq##style##backgroundImage <> "" then
+                (chosen_piece := Some sq;
+                 piece_loc := (c,r));
+              sq##style##backgroundColor <- (Js.string "#8c8c8c");
+              highlighted := (sq,b)::(!highlighted);
+            end
+          else
+            window##alert (Js.string "Please choose current player's piece.")
         end
       | Some x ->
         begin
@@ -325,7 +331,7 @@ let play_helper r c sq b =
             let moves = State.val_move_lst !piece_loc !current_state in
             if List.mem (c,r) moves then (
               current_state := State.do' (Move (!piece_loc,(c,r))) !current_state;
-              draw_board ()
+              draw_board ()))
         end
     end
   | Some pos ->
@@ -365,6 +371,7 @@ let handle_pic h e _ =
           (get_element n)##style##backgroundColor <- (Js.string "transparent")));
       chosen_image := "url('images/" ^ h ^ ".png')";
       e##style##backgroundColor <- (Js.string "#2d5475");
+    | Play -> () (* TODO handle promote *)
     | _ -> ()
   end;
   Js._false
