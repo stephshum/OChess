@@ -231,7 +231,7 @@ let piece_helper r c sq b =
         get_diag ((get_up_diagL r c []) @ (get_d_diagL r c [])); "DiagL"
       | (-1,1) | (1,-1)  ->
         get_diag ((get_up_diagR r c []) @ (get_d_diagR r c [])); "DiagR"
-      | _ -> "(" ^ (string_of_int (r-6)) ^ "," ^ (string_of_int (c-6)) ^ ")"
+      | _ -> "(" ^ (string_of_int (c-6)) ^ "," ^ (string_of_int (r-6)) ^ ")"
     end in
   custom_moves := p::(!custom_moves);
   highlighted := (sq,b)::(!highlighted);
