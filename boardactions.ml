@@ -445,9 +445,10 @@ let rec pieces_string x s =
       let p = if String.get n 12 = 'b' then "Black" else "White" in
       let w = get_image n in
       let x = String.(length w - 2 |> sub w 2 |> capitalize_ascii) in
-      pieces_string t (s^"{\"piece\":{\"name\":\"" ^ x ^ "\",\"color\":\"" ^ p ^
-          "\"},\"position\":\"(" ^ (string_of_int c) ^ "," ^ (string_of_int r) ^
-          ")\"},")
+      let name = if x = "Custom" then "custom" else x in
+      pieces_string t (s^"{\"piece\":{\"name\":\"" ^ name ^ "\",\"color\":\"" ^
+      p ^ "\"},\"position\":\"(" ^ (string_of_int c) ^ "," ^ (string_of_int r) ^
+      ")\"},")
   end
 
 (* [create_json ()] creates a JSON string for the initial state of the game *)
@@ -493,6 +494,7 @@ let create_json () =
           (string_of_int (fst k')) ^ ")\"," in
   let l = " \"check\": \"None\", \"checkmate\": \"None\"}" in
   let json = a^b^c^d^e^f^g^h^i^j^k^l in
+  window##alert (Js.string json);
   Yojson.Basic.from_string json
 
 (* [handle_play _] is the callback for the start game button *)
