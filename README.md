@@ -65,8 +65,10 @@ In command line, type
 * **opam install js_of_ocaml**
 * **opam install js_of_ocaml-ocamlbuild**
 * **opam install js_of_ocaml-camlp4**
+
 Once dependencies are installed:
 * **make js**
+
 Finally open chessapp.html 
 
 To run again:
