@@ -73,5 +73,6 @@ Finally open chessapp.html
 
 To run again:
 * **make clean**
+
 and follow instructions above again.
 
