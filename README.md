@@ -1,6 +1,6 @@
 # OChess
 
-Alan Pascual (ap835), Stephanie Shum (ss2972), Catherine Zhou (cz284)
+**Authors:** Alan Pascual (RoyAl-an), Stephanie Shum (stephshum), Catherine Zhou (catherineKzhou)
 
 ## System Description
 
@@ -62,22 +62,14 @@ Third-party libraries we will use are:
 Before making, must install dependencies.
 
 In command line, type
-
-**opam install js_of_ocaml**
-
-**opam install js_of_ocaml-ocamlbuild**
-
-**opam install js_of_ocaml-camlp4**
-
+* **opam install js_of_ocaml**
+* **opam install js_of_ocaml-ocamlbuild**
+* **opam install js_of_ocaml-camlp4**
 Once dependencies are installed:
-
-**make js**
-
+* **make js**
 Finally open chessapp.html 
 
 To run again:
-
-**make clean**
-
+* **make clean**
 and follow instructions above again.
 
