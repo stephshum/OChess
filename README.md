@@ -1,4 +1,4 @@
-# oChess
+# OChess
 
 Alan Pascual (ap835), Stephanie Shum (ss2972), Catherine Zhou (cz284)
 
